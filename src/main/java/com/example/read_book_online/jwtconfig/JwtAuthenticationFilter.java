@@ -1,4 +1,4 @@
-package com.example.read_book_online.middleware;
+package com.example.read_book_online.jwtconfig;
 
 
 import jakarta.servlet.FilterChain;

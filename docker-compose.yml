@@ -16,11 +16,12 @@ services:
   db:
     image: postgres:13
     environment:
-      - POSTGRES_DB=book_online
+      - POSTGRES_DB=book_online_db
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=123456
     ports:
       - "5431:5432"
+
 
   zookeeper:
     image: confluentinc/cp-zookeeper:latest

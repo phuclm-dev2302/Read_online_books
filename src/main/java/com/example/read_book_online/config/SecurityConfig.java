@@ -1,7 +1,7 @@
 package com.example.read_book_online.config;
 
 
-import com.example.read_book_online.middleware.JwtAuthenticationFilter;
+import com.example.read_book_online.jwtconfig.JwtAuthenticationFilter;
 import com.example.read_book_online.service.impl.UserDetailsServiceImpl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;

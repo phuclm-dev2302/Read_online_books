@@ -3,7 +3,7 @@ package com.example.read_book_online.controller;
 import com.example.read_book_online.dto.request.OtpRequest;
 import com.example.read_book_online.dto.request.SignInRequest;
 import com.example.read_book_online.dto.request.SignUpRequest;
-import com.example.read_book_online.dto.response.AuthDto;
+import com.example.read_book_online.dto.response.AuthResponse;
 import com.example.read_book_online.dto.response.ResponseData;
 import com.example.read_book_online.dto.response.ResponseError;
 import com.example.read_book_online.service.AuthService;
@@ -26,8 +26,8 @@ public class AuthController {
 
     @Operation(summary = "User login", description = "Authenticate user and return JWT token")
     @PostMapping("/login")
-    public ResponseEntity<ResponseData<AuthDto>> signIn(@RequestBody SignInRequest signInForm) {
-        ResponseData<AuthDto> response = authService.login(signInForm);
+    public ResponseEntity<ResponseData<AuthResponse>> signIn(@RequestBody SignInRequest signInForm) {
+        ResponseData<AuthResponse> response = authService.login(signInForm);
         return ResponseEntity.status(response.getStatus()).body(response);
     }
 

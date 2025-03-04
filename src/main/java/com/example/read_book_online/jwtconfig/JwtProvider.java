@@ -1,4 +1,4 @@
-package com.example.read_book_online.middleware;
+package com.example.read_book_online.jwtconfig;
 
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;

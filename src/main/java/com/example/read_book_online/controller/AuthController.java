@@ -9,6 +9,8 @@ import com.example.read_book_online.dto.response.ResponseError;
 import com.example.read_book_online.service.AuthService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -52,4 +54,10 @@ public class AuthController {
         }
         return ResponseEntity.status(response.getStatus()).body(response);
     }
+
+    @PostMapping("/logout")
+    public ResponseEntity<ResponseData<String>> logout(HttpServletRequest request, HttpServletResponse response) {
+        return ResponseEntity.ok(authService.logout(request, response));
+    }
+
 }

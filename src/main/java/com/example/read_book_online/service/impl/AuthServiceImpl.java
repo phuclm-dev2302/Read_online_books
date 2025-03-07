@@ -8,10 +8,14 @@ import com.example.read_book_online.dto.response.ResponseData;
 import com.example.read_book_online.dto.response.ResponseError;
 import com.example.read_book_online.entity.Role;
 import com.example.read_book_online.entity.User;
+import com.example.read_book_online.enums.StatusEnum;
 import com.example.read_book_online.jwtconfig.JwtProvider;
 import com.example.read_book_online.repository.RoleRepository;
 import com.example.read_book_online.repository.UserRepository;
 import com.example.read_book_online.service.AuthService;
+import com.example.read_book_online.service.BlacklistTokenService;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.kafka.core.KafkaTemplate;
@@ -23,6 +27,9 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.util.Date;
 import java.util.Random;
 
 @Slf4j
@@ -37,6 +44,8 @@ public class AuthServiceImpl implements AuthService {
     @Autowired
     private JwtProvider jwtProvider;
     @Autowired
+    private BlacklistTokenService  blacklistTokenService;
+    @Autowired
     private RoleRepository roleRepository;
     @Autowired
     private KafkaTemplate<String, String> kafkaTemplate;
@@ -46,7 +55,7 @@ public class AuthServiceImpl implements AuthService {
         User user = userRepository.findByEmail(form.getEmail())
                 .orElseThrow(() -> new IllegalArgumentException("User not found with email: " + form.getEmail()));
 
-        if (!user.getStatus().equals(User.Status.ACTIVE)) {
+        if (!user.getStatus().equals(StatusEnum.ACTIVE)) {
             throw new IllegalArgumentException("Account is not active");
         }
 
@@ -85,7 +94,7 @@ public class AuthServiceImpl implements AuthService {
                 .otp(otpCode)
                 .dob(form.getDob())
                 .phoneNumber(form.getPhoneNumber())
-                .status(User.Status.NONACTIVE)
+                .status(StatusEnum.NONACTIVE)
                 .build();
         userRepository.save(user);
 
@@ -106,9 +115,36 @@ public class AuthServiceImpl implements AuthService {
             throw new IllegalArgumentException("OTP is incorrect");
         }
 
-        user.setStatus(User.Status.ACTIVE);
+        user.setStatus(StatusEnum.ACTIVE);
         user.setSetCreatedDate(LocalDate.now());
         userRepository.save(user);
         return new ResponseData<>(200, "confirm successfully");
     }
+
+    @Override
+    public ResponseData<String> logout(HttpServletRequest request, HttpServletResponse response) {
+        String token = jwtProvider.getJwtFromRequest(request);
+
+        // Kiểm tra
+        if (token != null && jwtProvider.validateAccessToken(token)) {
+            Date expiryDateFromToken = jwtProvider.getExpiryDateFromToken(token);
+
+            // Chuyển đổi từ java.util.Date sang java.time.LocalDateTime
+            LocalDateTime expiryDate = expiryDateFromToken.toInstant()
+                    .atZone(ZoneId.systemDefault())
+                    .toLocalDateTime();
+
+            blacklistTokenService.addTokenToBlacklist(token, expiryDate);
+
+            // Xóa cookie hoặc bất kỳ thông tin đăng nhập liên quan
+            response.setHeader("Set-Cookie", "JSESSIONID=; HttpOnly; Path=/; Max-Age=0; Secure; SameSite=Strict");
+
+            log.info("User logged out successfully with token: {}", token);
+            return new ResponseData<>(200, "Đăng xuất thành công", null);
+        }
+
+        log.error("Logout failed: Invalid or expired token for request: {}", request.getRequestURI());
+        return new ResponseError<>(400, "Token không hợp lệ hoặc đã hết hạn");
+    }
+
 }

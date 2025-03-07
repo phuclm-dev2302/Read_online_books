@@ -1,5 +1,6 @@
 package com.example.read_book_online.entity;
 
+import com.example.read_book_online.enums.StatusEnum;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.security.core.GrantedAuthority;
@@ -42,14 +43,11 @@ public class User implements UserDetails {
     private String phoneNumber;
 
     @Enumerated(EnumType.STRING)
-    private Status status;
+    private StatusEnum status;
 
     private String otp;
 
     private LocalDate setCreatedDate;
-    public enum Status {
-        ACTIVE, NONACTIVE, DELETED
-    }
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
@@ -83,6 +81,6 @@ public class User implements UserDetails {
 
     @Override
     public boolean isEnabled() {
-        return status == Status.ACTIVE;
+        return status == StatusEnum.ACTIVE;
     }
 }

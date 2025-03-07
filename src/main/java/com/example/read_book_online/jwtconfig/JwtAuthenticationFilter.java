@@ -1,6 +1,7 @@
 package com.example.read_book_online.jwtconfig;
 
 
+import com.example.read_book_online.service.BlacklistTokenService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -19,7 +20,7 @@ import java.io.IOException;
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtProvider jwtTokenProvider;
-//    private final BlacklistTokenService blacklistTokenService;
+    private final BlacklistTokenService blacklistTokenService;
     @Override
     protected void doFilterInternal(
             @NonNull HttpServletRequest request,
@@ -31,10 +32,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         // Nếu JWT không null và hợp lệ
         if (token != null && jwtTokenProvider.validateAccessToken(token)) {
-//            if (blacklistTokenService.isTokenBlacklisted(token)) {
-//                response.sendError(403, "Token has been blacklisted");
-//                return;
-//            }
+            if (blacklistTokenService.isTokenBlacklisted(token)) {
+                response.sendError(403, "Token has been blacklisted");
+                return;
+            }
             Authentication auth = jwtTokenProvider.createAuthentication(token);
             SecurityContextHolder.getContext().setAuthentication(auth);
         }

@@ -56,7 +56,6 @@ public class SecurityConfig {
                 .authorizeHttpRequests(authorizeRequests -> authorizeRequests
                         .requestMatchers(WHITELISTED_USER).permitAll()
                         .requestMatchers("/api/v1/admin/**").hasAnyAuthority("ROLE_ADMIN")
-                        .requestMatchers("/api/v1/doctor/**").hasAnyAuthority("ROLE_ADMIN","ROLE_DOCTOR")
                         .anyRequest().authenticated()
                 )
                 .userDetailsService(userDetailsService)

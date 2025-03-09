@@ -3,6 +3,8 @@ package com.example.read_book_online.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.List;
+
 @Entity
 @Builder
 @Data
@@ -26,7 +28,6 @@ public class Book {
 
     private String pdfFilePath;
 
-    private Long views; // Tổng lượt xem
-
-    private Long likes;
+    @OneToMany(mappedBy = "book", cascade = CascadeType.ALL)
+    private List<BookInteraction> interactions; // Danh sách like & view của từng user
 }

@@ -1,17 +1,17 @@
 package com.example.read_book_online.service.impl;
 
 import com.example.read_book_online.config.exception.BookNotFoundException;
+import com.example.read_book_online.config.exception.UserNotFoundException;
 import com.example.read_book_online.dto.request.BookRequest;
 import com.example.read_book_online.dto.response.BookResponse;
 import com.example.read_book_online.dto.response.ResponseData;
-import com.example.read_book_online.entity.Author;
-import com.example.read_book_online.entity.Book;
-import com.example.read_book_online.entity.Category;
-import com.example.read_book_online.repository.AuthorRepository;
-import com.example.read_book_online.repository.BookRepository;
-import com.example.read_book_online.repository.CategoryRepository;
+import com.example.read_book_online.entity.*;
+import com.example.read_book_online.repository.*;
 import com.example.read_book_online.service.BookService;
+import com.example.read_book_online.service.UserService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -19,18 +19,24 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Optional;
 
+@Slf4j
 @Service
 public class BookServiceImpl implements BookService {
     @Autowired
     private BookRepository bookRepository;
-
     @Autowired
     private CategoryRepository categoryRepository;
-
     private static final String UPLOAD_DIR = System.getProperty("user.dir") + "/uploads/pdf/";
     @Autowired
     private AuthorRepository authorRepository;
+    @Autowired
+    private BookInteractionRepository bookInteractionRepository;
+    @Autowired
+    private UserRepository userRepository;
+    @Autowired
+    private UserService userService;
 
     @Override
     public ResponseData<BookResponse> addBook(BookRequest bookRequest) {
@@ -64,13 +70,12 @@ public class BookServiceImpl implements BookService {
                     .author(author)
                     .category(category)
                     .pdfFilePath(filePath)
-                    .views(0L)
-                    .likes(0L)
+                    .interactions(null)
                     .build();
 
             bookRepository.save(book);
 
-            return new ResponseData<>(200, "Book uploaded successfully",BookResponse.from(book));
+            return new ResponseData<>(200, "Book uploaded successfully",BookResponse.from(book, bookRepository));
 
         } catch (IOException e) {
             return new ResponseData<>(500, "Failed to upload PDF file", null);
@@ -79,9 +84,54 @@ public class BookServiceImpl implements BookService {
 
     @Override
     public ResponseData<BookResponse> getBookById(Long bookId) {
+        User user = userService.getUserBySecurity();
         Book book = bookRepository.findById(bookId)
                 .orElseThrow(() -> new BookNotFoundException("Book not found"));
 
-        return new ResponseData<>(200, "Book found", BookResponse.from(book));
+        // Tìm BookInteraction xem user đã tương tác với book này chưa
+        Optional<BookInteraction> optionalInteraction = bookInteractionRepository.findByUserIdAndBookId(user.getUserId(), book.getBookId());
+
+        BookInteraction bookInteraction;
+        if (optionalInteraction.isPresent()) {
+            // Nếu đã có bản ghi, tăng số lượt xem
+            bookInteraction = optionalInteraction.get();
+            bookInteraction.setViews(bookInteraction.getViews() + 1);
+        } else {
+            bookInteraction = BookInteraction.builder()
+                    .user(user)
+                    .book(book)
+                    .views(1) // Lượt xem đầu tiên
+                    .liked(false) // Mặc định chưa like
+                    .build();
+        }
+
+        bookInteractionRepository.save(bookInteraction);
+
+        return new ResponseData<>(200, "Book found", BookResponse.from(book, bookRepository));
     }
+
+    @Override
+    public ResponseData<BookResponse> likeBook(Long bookId) {
+        User user = userService.getUserBySecurity();
+        Book book = bookRepository.findById(bookId)
+                .orElseThrow(() -> new BookNotFoundException("Book not found"));
+
+        Optional<BookInteraction> optionalInteraction = bookInteractionRepository.findByUserIdAndBookId(user.getUserId(), book.getBookId());
+        if (optionalInteraction.isPresent()) {
+            BookInteraction bookInteraction = optionalInteraction.get();
+            if (bookInteraction.isLiked()) {
+                log.debug("Disliked book id: " + bookId);
+                bookInteraction.setLiked(false);
+            } else {
+                log.debug("Liked book id: " + bookId);
+                bookInteraction.setLiked(true);
+            }
+            bookInteractionRepository.save(bookInteraction);
+            return new ResponseData<>(200, "Success", BookResponse.from(book, bookRepository));
+        } else {
+            // Xử lý khi không tìm thấy BookInteraction
+            return new ResponseData<>(404, "Book interaction not found", null);
+        }
+    }
+
 }

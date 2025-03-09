@@ -49,6 +49,9 @@ public class User implements UserDetails {
 
     private LocalDate setCreatedDate;
 
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    private List<BookInteraction> interactions; // Danh sách sách đã like hoặc xem
+
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return role.getName() == null ? List.of() : List.of(new SimpleGrantedAuthority(role.getName()));

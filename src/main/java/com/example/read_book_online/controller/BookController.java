@@ -9,6 +9,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.security.Principal;
+
 @RestController
 @RequestMapping("api/v1/book")
 public class BookController {
@@ -26,5 +28,9 @@ public class BookController {
         return ResponseEntity.ok(bookService.getBookById(id));
     }
 
+    @PatchMapping("like/{id}")
+    public ResponseEntity<ResponseData<BookResponse>> likeBook(@PathVariable("id") Long id) {
+        return ResponseEntity.ok(bookService.likeBook(id));
+    }
 
 }

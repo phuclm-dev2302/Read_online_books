@@ -33,7 +33,8 @@ public class SecurityConfig {
             "/api/v1/auth/**",
             "/api/v1/ipn",
             "/api/v1/redirect",
-            "/upload/**",
+            "/uploads/**",
+            "/api/v1/book/**",
             "/ws/chat/**",
             "/v2/api-docs",
             "/v3/api-docs",
@@ -52,7 +53,7 @@ public class SecurityConfig {
         http
                 .cors()
                 .and()
-                .csrf().disable()
+                .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(authorizeRequests -> authorizeRequests
                         .requestMatchers(WHITELISTED_USER).permitAll()
                         .requestMatchers("/api/v1/admin/**").hasAnyAuthority("ROLE_ADMIN")

@@ -1,7 +1,6 @@
 package com.example.read_book_online.service.impl;
 
 import com.example.read_book_online.config.exception.BookNotFoundException;
-import com.example.read_book_online.config.exception.UserNotFoundException;
 import com.example.read_book_online.dto.request.BookRequest;
 import com.example.read_book_online.dto.response.BookResponse;
 import com.example.read_book_online.dto.response.ResponseData;
@@ -9,12 +8,17 @@ import com.example.read_book_online.entity.*;
 import com.example.read_book_online.repository.*;
 import com.example.read_book_online.service.BookService;
 import com.example.read_book_online.service.UserService;
+import org.springframework.core.io.InputStreamResource;
+import org.springframework.core.io.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -132,6 +136,27 @@ public class BookServiceImpl implements BookService {
             // Xử lý khi không tìm thấy BookInteraction
             return new ResponseData<>(404, "Book interaction not found", null);
         }
+    }
+
+    @Override
+    public Resource getBookPDF(Long bookId) throws FileNotFoundException {
+        Book book = bookRepository.findById(bookId)
+                .orElseThrow(() -> new RuntimeException("Book not found"));
+
+        if (book.getPdfFilePath() == null) {
+            throw new RuntimeException("PDF file path is null");
+        }
+
+        // Đường dẫn file PDF
+        Path filePath = Paths.get(System.getProperty("user.dir") + book.getPdfFilePath());
+        File pdfFile = filePath.toFile();
+
+        if (!pdfFile.exists()) {
+            throw new RuntimeException("PDF file not found");
+        }
+
+        // Đọc file và truyền về dạng InputStreamResource
+        return new InputStreamResource(new FileInputStream(pdfFile));
     }
 
 }

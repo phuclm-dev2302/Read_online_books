@@ -18,19 +18,25 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.util.Date;
-import java.util.Random;
+import java.util.*;
 
 @Slf4j
 @Service
@@ -49,6 +55,63 @@ public class AuthServiceImpl implements AuthService {
     private RoleRepository roleRepository;
     @Autowired
     private KafkaTemplate<String, String> kafkaTemplate;
+    @Autowired
+    private RestTemplate restTemplate;
+
+    @Override
+    public ResponseData<AuthResponse> loginWithGoogle(String accessToken) {
+        // Gọi API Google để lấy thông tin user
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", "Bearer " + accessToken);
+        HttpEntity<String> entity = new HttpEntity<>(headers);
+
+        ResponseEntity<Map> response = restTemplate.exchange(
+                "https://www.googleapis.com/oauth2/v3/userinfo",
+                HttpMethod.GET,
+                entity,
+                Map.class
+        );
+
+        Map<String, Object> userInfo = response.getBody();
+        if (userInfo == null || !userInfo.containsKey("email")) {
+            return new ResponseError<>(400, "Không lấy được thông tin từ Google.");
+        }
+
+        // Lấy thông tin từ Google
+        String email = (String) userInfo.get("email");
+        String name = (String) userInfo.get("name");
+
+        // Kiểm tra user đã tồn tại chưa
+        User user = userRepository.findByEmail(email).orElse(null);
+
+        if (user == null) {
+            // Lấy role mặc định
+            Role role = roleRepository.findByName("ROLE_USER")
+                    .orElseThrow(() -> new RuntimeException("Role not found"));
+
+            user = User.builder()
+                    .email(email)
+                    .username(name)
+                    .role(role)
+                    .status(StatusEnum.ACTIVE)
+                    .build();
+            userRepository.save(user);
+        }
+
+        // Tạo đối tượng Authentication từ user
+        Authentication authentication = new UsernamePasswordAuthenticationToken(
+                user.getEmail(),
+                null,
+                Collections.singletonList(new SimpleGrantedAuthority(user.getRole().getName()))
+        );
+
+        // Tạo JWT token
+        String token = jwtProvider.generateToken(authentication);
+
+        // Trả về AuthResponse
+        AuthResponse authResponse = AuthResponse.from(user, token);
+        return new ResponseData<>(200, "Đăng nhập thành công!", authResponse);
+    }
 
     @Override
     public ResponseData<AuthResponse> login(SignInRequest form) {

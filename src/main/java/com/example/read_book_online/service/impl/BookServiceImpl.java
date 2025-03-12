@@ -4,6 +4,7 @@ import com.example.read_book_online.config.exception.BookNotFoundException;
 import com.example.read_book_online.dto.request.BookRequest;
 import com.example.read_book_online.dto.response.BookResponse;
 import com.example.read_book_online.dto.response.ResponseData;
+import com.example.read_book_online.dto.response.ResponseError;
 import com.example.read_book_online.entity.*;
 import com.example.read_book_online.repository.*;
 import com.example.read_book_online.service.BookService;
@@ -13,6 +14,9 @@ import org.springframework.core.io.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -159,4 +163,16 @@ public class BookServiceImpl implements BookService {
         return new InputStreamResource(new FileInputStream(pdfFile));
     }
 
+    @Override
+    public ResponseData<Page<BookResponse>> getBooks(int page, int size) {
+        Pageable pageable = PageRequest.of(page,size);
+
+        Page<Book> books = bookRepository.findAll(pageable);
+        if (books.isEmpty()){
+            throw new BookNotFoundException("Book not found");
+        }
+
+        Page<BookResponse> bookResponses = books.map(book -> BookResponse.from(book, bookRepository));
+        return new ResponseData<>(200, "Books found", bookResponses);
+    }
 }

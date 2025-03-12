@@ -31,6 +31,9 @@ public class User implements UserDetails {
     @JoinColumn(name = "Role_ID", nullable = false)
     private Role role;
 
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private VipMembership vipMembership;
+
     @Column(unique = true, nullable = false)
     private String email;
 

@@ -1,9 +1,9 @@
 package com.example.read_book_online.config;
 
-
 import com.example.read_book_online.jwtconfig.JwtAuthenticationFilter;
 import com.example.read_book_online.service.impl.UserDetailsServiceImpl;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -25,12 +25,13 @@ import java.util.List;
 @EnableWebSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
-
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final UserDetailsServiceImpl userDetailsService;
 
     private static final String[] WHITELISTED_USER = {
             "/api/v1/auth/**",
+            "/oauth2/authorization/google",
+            "/login/oauth2/code/google",
             "/api/v1/ipn",
             "/api/v1/redirect",
             "/uploads/**",
@@ -50,28 +51,37 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http
-                .cors()
-                .and()
+        return http
                 .csrf(csrf -> csrf.disable())
-                .authorizeHttpRequests(authorizeRequests -> authorizeRequests
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                .authorizeHttpRequests(auth -> auth
                         .requestMatchers(WHITELISTED_USER).permitAll()
+                        .requestMatchers("/api/v1/auth/google/login").permitAll()  // thằng auth controller login google
+                        .requestMatchers("/login/oauth2/code/google").permitAll() // login xong -> th.bao
                         .requestMatchers("/api/v1/admin/**").hasAnyAuthority("ROLE_ADMIN")
                         .anyRequest().authenticated()
                 )
-                .userDetailsService(userDetailsService)
-                .sessionManagement(session -> session
-                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                .oauth2Login(oauth2 -> oauth2
+                        .defaultSuccessUrl("/api/v1/auth/google/success", true) // ✅ Chuyển hướng khi login thành công
+                        .failureHandler((request, response, exception) -> {
+                            System.err.println("OAuth2 Login Failed: " + exception.getMessage());
+                            response.sendRedirect("/api/v1/auth/google/failure");
+                        })
                 )
-                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
-
-        return http.build();
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+                .build();
     }
 
+    // Cấu hình CORS
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration corsConfig = new CorsConfiguration();
-        corsConfig.setAllowedOrigins(List.of("http://localhost:3000", " https://*.loca.lt", " https:*.ngrok-free.app"));
+        corsConfig.setAllowedOrigins(List.of(
+                "http://localhost:3000",
+                "https://*.loca.lt",
+                "https://*.ngrok-free.app",
+                "http://localhost:8080"));
         corsConfig.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
         corsConfig.setAllowedHeaders(List.of("Authorization", "Cache-Control", "Content-Type"));
         corsConfig.setAllowCredentials(true);

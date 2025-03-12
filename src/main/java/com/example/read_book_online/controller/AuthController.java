@@ -5,7 +5,6 @@ import com.example.read_book_online.dto.request.SignInRequest;
 import com.example.read_book_online.dto.request.SignUpRequest;
 import com.example.read_book_online.dto.response.AuthResponse;
 import com.example.read_book_online.dto.response.ResponseData;
-import com.example.read_book_online.dto.response.ResponseError;
 import com.example.read_book_online.service.AuthService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -14,7 +13,10 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.web.bind.annotation.*;
 
 @Slf4j
@@ -50,7 +52,7 @@ public class AuthController {
             response = authService.confirmUser(userId, form.getOtpCode());
         } catch (Exception e) {
             log.error("errorMessage={}", e.getMessage(), e.getCause());
-            response = new ResponseError<>(400, "Confirm was failed");
+            response = new ResponseData<>(400, "Confirm failed");
         }
         return ResponseEntity.status(response.getStatus()).body(response);
     }
@@ -60,4 +62,22 @@ public class AuthController {
         return ResponseEntity.ok(authService.logout(request, response));
     }
 
+    @Operation(summary = "Login with Google", description = "Authenticate user via Google OAuth and return JWT token")
+    @GetMapping("/google/login")
+    public ResponseEntity<?> loginWithGoogle(@RequestHeader("Authorization") String authHeader) {
+        String accessToken = authHeader.replace("Bearer ", "");
+        ResponseData<AuthResponse> response = authService.loginWithGoogle(accessToken);
+        return ResponseEntity.status(response.getStatus()).body(response);
+    }
+
+
+    @GetMapping("/google/success")
+    public ResponseEntity<?> loginSuccess(@AuthenticationPrincipal OAuth2User user) {
+        return ResponseEntity.ok(user.getAttributes());
+    }
+
+    @GetMapping("/google/failure")
+    public ResponseEntity<?> loginFailure() {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Google Login Failed");
+    }
 }

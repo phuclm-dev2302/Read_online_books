@@ -40,6 +40,24 @@ public class GlobalExceptionHandler {
         log.error("Book not found: {}", ex.getMessage());
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
     }
+    @ExceptionHandler(UserNotRegisteredVip.class)
+    public ResponseEntity<ResponseError<Object>> handleUserNotRegisteredVip(UserNotRegisteredVip ex) {
+        ResponseError<Object> errorResponse = new ResponseError<>(404, ex.getMessage());
+        log.error("User not registered vip: {}", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
+    }
+    @ExceptionHandler(UserAlreadyVipException.class)
+    public ResponseEntity<ResponseError<Object>> handleUserAlreadyVip(UserAlreadyVipException ex) {
+        ResponseError<Object> errorResponse = new ResponseError<>(400, ex.getMessage());
+        log.error("User not registered vip: {}", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+    }
+    @ExceptionHandler(InvalidRenewalException.class)
+    public ResponseEntity<ResponseError<Object>> handleInvalidRenewalException(InvalidRenewalException ex) {
+        ResponseError<Object> errorResponse = new ResponseError<>(400, ex.getMessage());
+        log.error("Renewal failed: {}", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+    }
 }
 
 

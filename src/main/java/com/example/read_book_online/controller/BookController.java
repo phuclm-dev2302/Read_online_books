@@ -48,7 +48,7 @@ public class BookController {
                     .contentType(MediaType.APPLICATION_PDF)
                     .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"book.pdf\"") // Xem trực tiếp, filename là gi ý tên file khiusẻ tải xuốnh
                     .body(resource);
-        } catch (RuntimeException | FileNotFoundException e) {
+        } catch (FileNotFoundException e) {
             return ResponseEntity.notFound().build();
         }
     }

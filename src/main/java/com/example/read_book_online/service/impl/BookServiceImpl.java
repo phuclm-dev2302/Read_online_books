@@ -1,11 +1,13 @@
 package com.example.read_book_online.service.impl;
 
 import com.example.read_book_online.config.exception.BookNotFoundException;
+import com.example.read_book_online.config.exception.UserNotRegisteredVip;
 import com.example.read_book_online.dto.request.BookRequest;
 import com.example.read_book_online.dto.response.BookResponse;
 import com.example.read_book_online.dto.response.ResponseData;
 import com.example.read_book_online.dto.response.ResponseError;
 import com.example.read_book_online.entity.*;
+import com.example.read_book_online.enums.VipStatusEnum;
 import com.example.read_book_online.repository.*;
 import com.example.read_book_online.service.BookService;
 import com.example.read_book_online.service.UserService;
@@ -45,6 +47,8 @@ public class BookServiceImpl implements BookService {
     private UserRepository userRepository;
     @Autowired
     private UserService userService;
+    @Autowired
+    private VipMembershipRepository vipMembershipRepository;
 
     @Override
     public ResponseData<BookResponse> addBook(BookRequest bookRequest) {
@@ -78,6 +82,7 @@ public class BookServiceImpl implements BookService {
                     .author(author)
                     .category(category)
                     .pdfFilePath(filePath)
+                    .isVip(bookRequest.getIsVip())
                     .interactions(null)
                     .build();
 
@@ -144,9 +149,23 @@ public class BookServiceImpl implements BookService {
 
     @Override
     public Resource getBookPDF(Long bookId) throws FileNotFoundException {
+        // Lấy thông tin sách
         Book book = bookRepository.findById(bookId)
                 .orElseThrow(() -> new RuntimeException("Book not found"));
 
+        // Kiểm tra nếu sách yêu cầu VIP
+        if (book.getIsVip()) {
+            User user = userService.getUserBySecurity(); // Lấy user hiện tại
+            VipMembership vipMembership = vipMembershipRepository.findByUserUserId(user.getUserId())
+                    .orElseThrow(() -> new UserNotRegisteredVip("User is not a VIP member"));
+
+            // Kiểm tra trạng thái VIP (phải là ACTIVE)
+            if (vipMembership.getVipStatusEnum() != VipStatusEnum.ACTIVE) {
+                throw new UserNotRegisteredVip("VIP membership is not active");
+            }
+        }
+
+        // Kiểm tra nếu sách không có PDF
         if (book.getPdfFilePath() == null) {
             throw new RuntimeException("PDF file path is null");
         }
@@ -162,6 +181,7 @@ public class BookServiceImpl implements BookService {
         // Đọc file và truyền về dạng InputStreamResource
         return new InputStreamResource(new FileInputStream(pdfFile));
     }
+
 
     @Override
     public ResponseData<Page<BookResponse>> getBooks(int page, int size) {

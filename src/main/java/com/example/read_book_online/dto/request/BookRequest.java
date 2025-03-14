@@ -9,4 +9,5 @@ public class BookRequest {
     private Long authorId;
     private Long categoryId;
     private MultipartFile pdfFile;
+    private Boolean isVip;
 }

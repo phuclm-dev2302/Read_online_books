@@ -28,6 +28,8 @@ public class Book {
 
     private String pdfFilePath;
 
+    private Boolean isVip;
+
     @OneToMany(mappedBy = "book", cascade = CascadeType.ALL)
     private List<BookInteraction> interactions; // Danh sách like & view của từng user
 }

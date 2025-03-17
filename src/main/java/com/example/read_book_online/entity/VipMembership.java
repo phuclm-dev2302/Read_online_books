@@ -18,7 +18,7 @@ public class VipMembership {
 
     @Id
     @GeneratedValue( strategy = GenerationType.IDENTITY)
-    private String id;
+    private Long id;
 
     @OneToOne
     @JoinColumn(name = "user_id", nullable = false, unique = true)

@@ -8,6 +8,8 @@ import com.example.read_book_online.repository.UserRepository;
 import com.example.read_book_online.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -39,6 +41,10 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public ResponseData<Page<UserResponse>> getUsers(int page, int size) {
-        return null;
+        Pageable pageable = PageRequest.of(page, size);
+        Page<User> pageUsers = userRepository.findAll(pageable);
+        Page<UserResponse> pageDTO = pageUsers.map(UserResponse::fromUser);
+
+        return new ResponseData<>(200,"Get users success", pageDTO);
     }
 }

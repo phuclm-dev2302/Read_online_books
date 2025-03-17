@@ -1,6 +1,8 @@
 package com.example.read_book_online.config;
 
 import com.example.read_book_online.jwtconfig.JwtAuthenticationFilter;
+import com.example.read_book_online.jwtconfig.JwtProvider;
+import com.example.read_book_online.repository.UserRepository;
 import com.example.read_book_online.service.impl.UserDetailsServiceImpl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,6 +15,7 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.client.oidc.userinfo.OidcUserService;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
@@ -21,15 +24,25 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.List;
 
+import static org.springframework.security.config.Customizer.withDefaults;
+
 @Configuration
 @EnableWebSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
-    private final JwtAuthenticationFilter jwtAuthenticationFilter;
-    private final UserDetailsServiceImpl userDetailsService;
+    @Autowired
+    private JwtAuthenticationFilter jwtAuthenticationFilter;
+    @Autowired
+    private UserDetailsServiceImpl userDetailsService;
+    @Autowired
+    private JwtProvider jwtProvider;
+    @Autowired
+    private UserRepository userRepository;
+
 
     private static final String[] WHITELISTED_USER = {
             "/api/v1/auth/**",
+            "/login",
             "/oauth2/authorization/google",
             "/login/oauth2/code/google",
             "/api/v1/ipn",
@@ -56,19 +69,11 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(WHITELISTED_USER).permitAll()
-                        .requestMatchers("/api/v1/auth/google/login").permitAll()  // thằng auth controller login google
-                        .requestMatchers("/login/oauth2/code/google").permitAll() // login xong -> th.bao
                         .requestMatchers("/api/v1/admin/**").hasAnyAuthority("ROLE_ADMIN")
                         .anyRequest().authenticated()
                 )
-                .oauth2Login(oauth2 -> oauth2
-                        .defaultSuccessUrl("/api/v1/auth/google/success", true) // ✅ Chuyển hướng khi login thành công
-                        .failureHandler((request, response, exception) -> {
-                            System.err.println("OAuth2 Login Failed: " + exception.getMessage());
-                            response.sendRedirect("/api/v1/auth/google/failure");
-                        })
-                )
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                // Thêm JWT filter để xử lý xác thực bằng token
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();
     }

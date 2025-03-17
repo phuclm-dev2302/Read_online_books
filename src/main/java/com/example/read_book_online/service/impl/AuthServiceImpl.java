@@ -83,7 +83,6 @@ public class AuthServiceImpl implements AuthService {
 
         // Kiểm tra user đã tồn tại chưa
         User user = userRepository.findByEmail(email).orElse(null);
-
         if (user == null) {
             // Lấy role mặc định
             Role role = roleRepository.findByName("ROLE_USER")
@@ -92,18 +91,24 @@ public class AuthServiceImpl implements AuthService {
             user = User.builder()
                     .email(email)
                     .username(name)
+                    .password(passwordEncoder.encode(UUID.randomUUID().toString().substring(0, 8)))
                     .role(role)
                     .status(StatusEnum.ACTIVE)
                     .build();
             userRepository.save(user);
         }
 
-        // Tạo đối tượng Authentication từ user
-        Authentication authentication = new UsernamePasswordAuthenticationToken(
-                user.getEmail(),
-                null,
-                Collections.singletonList(new SimpleGrantedAuthority(user.getRole().getName()))
-        );
+        Authentication authentication;
+        try {
+            authentication = new UsernamePasswordAuthenticationToken(
+                    user.getEmail(),
+                    null,
+                    Collections.singletonList(new SimpleGrantedAuthority(user.getRole().getName()))
+            );
+        } catch (AuthenticationException e) {
+            log.error("Authentication failed for email: {} with exception: {}", user.getEmail(), e.getMessage());
+            throw new IllegalArgumentException("Invalid email or password");
+        }
 
         // Tạo JWT token
         String token = jwtProvider.generateToken(authentication);
@@ -112,6 +117,7 @@ public class AuthServiceImpl implements AuthService {
         AuthResponse authResponse = AuthResponse.from(user, token);
         return new ResponseData<>(200, "Đăng nhập thành công!", authResponse);
     }
+
 
     @Override
     public ResponseData<AuthResponse> login(SignInRequest form) {

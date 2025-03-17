@@ -6,9 +6,8 @@ import com.example.read_book_online.dto.response.UserResponse;
 import com.example.read_book_online.entity.User;
 import com.example.read_book_online.repository.UserRepository;
 import com.example.read_book_online.service.UserService;
-import org.json.HTTP;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
+import org.springframework.data.domain.Page;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -21,17 +20,25 @@ public class UserServiceImpl implements UserService {
     @Override
     public User getUserBySecurity() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new UserNotFoundException("User is not authenticated");
+        }
         String email = authentication.getName();
-
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new UserNotFoundException("User Not Found"));
 
         return user;
     }
 
+
     @Override
-    public ResponseData<UserResponse> getUser() {
+    public ResponseData<UserResponse> getMe() {
         User user = getUserBySecurity();
         return new ResponseData<>(200,"Get user success", UserResponse.fromUser(user));
+    }
+
+    @Override
+    public ResponseData<Page<UserResponse>> getUsers(int page, int size) {
+        return null;
     }
 }

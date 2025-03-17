@@ -23,10 +23,11 @@ public class UserController {
     private UserService userService;
 
     @Operation(summary = "Nguoi dung xem profile ban than", description = "API cho phep user xem profile cua minh")
-    @GetMapping("")
-    public ResponseEntity<ResponseData<UserResponse>> getUser(){
-        ResponseData<UserResponse> result = userService.getUser();
+    @GetMapping("/me")
+    public ResponseEntity<ResponseData<UserResponse>> getMe(){
+        ResponseData<UserResponse> result = userService.getMe();
         return ResponseEntity.status(result.getStatus()).body(result);
     }
+
 
 }

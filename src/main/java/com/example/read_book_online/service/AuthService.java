@@ -12,8 +12,13 @@ import org.springframework.security.oauth2.client.authentication.OAuth2Authentic
 
 public interface AuthService {
     ResponseData<AuthResponse> login(SignInRequest form);
+
     ResponseData<String> register(SignUpRequest form);
+
     ResponseData<String> logout(HttpServletRequest request, HttpServletResponse response);
+
     ResponseData<String> confirmUser(long userId, String otpCode);
-    ResponseData<AuthResponse> loginWithGoogle(String accessToken);
+
+    //ResponseData<AuthResponse> loginWithGoogle(String accessToken);
+    AuthResponse handleGoogleRedirect(OAuth2AuthenticationToken authenticationToken);
 }

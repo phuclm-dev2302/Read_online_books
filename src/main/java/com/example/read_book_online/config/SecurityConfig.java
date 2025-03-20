@@ -8,14 +8,15 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.oauth2.client.oidc.userinfo.OidcUserService;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
@@ -23,8 +24,6 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.List;
-
-import static org.springframework.security.config.Customizer.withDefaults;
 
 @Configuration
 @EnableWebSecurity
@@ -38,28 +37,19 @@ public class SecurityConfig {
     private JwtProvider jwtProvider;
     @Autowired
     private UserRepository userRepository;
-
+    @Lazy
+    @Autowired
+    private OAuth2LoginSuccessHandler loginSuccessHandler;
 
     private static final String[] WHITELISTED_USER = {
-            "/api/v1/auth/**",
-            "/login",
             "/oauth2/authorization/google",
-            "/login/oauth2/code/google",
-            "/api/v1/ipn",
-            "/api/v1/redirect",
-            "/uploads/**",
+            "/api/v1/auth/**",
             "/api/v1/book/**",
+            "/uploads/**",
             "/ws/chat/**",
-            "/v2/api-docs",
-            "/v3/api-docs",
-            "/v3/api-docs/**",
-            "/swagger-resources",
-            "/swagger-resources/**",
-            "/configuration/ui",
-            "/configuration/security",
-            "/swagger-ui/**",
-            "/webjars/**",
-            "/swagger-ui.html"
+            "/v2/api-docs", "/v3/api-docs/**",
+            "/swagger-ui/**", "/swagger-resources/**",
+            "/webjars/**"
     };
 
     @Bean
@@ -69,24 +59,29 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(WHITELISTED_USER).permitAll()
-                        .requestMatchers("/api/v1/admin/**").hasAnyAuthority("ROLE_ADMIN")
+                        .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
                         .anyRequest().authenticated()
                 )
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                // Thêm JWT filter để xử lý xác thực bằng token
+//                .oauth2Login(oauth2 -> oauth2
+//                        .defaultSuccessUrl("/api/v1/auth/login/oauth2/google-redirect", true)
+//                )
+                .oauth2Login(oauth2 -> oauth2
+//                        .redirectionEndpoint(redirection -> redirection
+//                                .baseUri("/login/oauth2/code/google")
+//                        )
+                                .successHandler(loginSuccessHandler)
+                )
+                .sessionManagement(session -> session
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                )
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();
     }
 
-    // Cấu hình CORS
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration corsConfig = new CorsConfiguration();
-        corsConfig.setAllowedOrigins(List.of(
-                "http://localhost:3000",
-                "https://*.loca.lt",
-                "https://*.ngrok-free.app",
-                "http://localhost:8080"));
+        corsConfig.setAllowedOrigins(List.of("http://localhost:8080", "http://localhost:3000"));
         corsConfig.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
         corsConfig.setAllowedHeaders(List.of("Authorization", "Cache-Control", "Content-Type"));
         corsConfig.setAllowCredentials(true);

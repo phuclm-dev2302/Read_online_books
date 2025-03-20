@@ -15,8 +15,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.oauth2.core.user.OAuth2User;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.web.bind.annotation.*;
 
 @Slf4j
@@ -28,11 +29,18 @@ public class AuthController {
     @Autowired
     private AuthService authService;
 
-    @Operation(summary = "User login", description = "Authenticate user and return JWT token")
-    @PostMapping("/login")
-    public ResponseEntity<ResponseData<AuthResponse>> signIn(@RequestBody SignInRequest signInForm) {
-        ResponseData<AuthResponse> response = authService.login(signInForm);
-        return ResponseEntity.status(response.getStatus()).body(response);
+    @GetMapping("/login/oauth2/google-redirect")
+    public ResponseData<AuthResponse> googleRedirect() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (!(authentication instanceof OAuth2AuthenticationToken)) {
+            throw new IllegalStateException("User not authenticated via OAuth2");
+        }
+
+        OAuth2AuthenticationToken authenticationToken = (OAuth2AuthenticationToken) authentication;
+        AuthResponse authResponse = authService.handleGoogleRedirect(authenticationToken);
+
+        return new ResponseData<>(HttpStatus.OK.value(), "Login successful", authResponse);
     }
 
     @Operation(summary = "User registration", description = "Register a new user account")
@@ -60,24 +68,5 @@ public class AuthController {
     @PostMapping("/logout")
     public ResponseEntity<ResponseData<String>> logout(HttpServletRequest request, HttpServletResponse response) {
         return ResponseEntity.ok(authService.logout(request, response));
-    }
-
-    @Operation(summary = "Login with Google", description = "Authenticate user via Google OAuth and return JWT token")
-    @GetMapping("/google/login")
-    public ResponseEntity<?> loginWithGoogle(@RequestHeader("Authorization") String authHeader) {
-        String accessToken = authHeader.replace("Bearer ", "");
-        ResponseData<AuthResponse> response = authService.loginWithGoogle(accessToken);
-        return ResponseEntity.status(response.getStatus()).body(response);
-    }
-
-
-    @GetMapping("/google/success")
-    public ResponseEntity<?> loginSuccess(@AuthenticationPrincipal OAuth2User user) {
-        return ResponseEntity.ok(user.getAttributes());
-    }
-
-    @GetMapping("/google/failure")
-    public ResponseEntity<?> loginFailure() {
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Google Login Failed");
     }
 }

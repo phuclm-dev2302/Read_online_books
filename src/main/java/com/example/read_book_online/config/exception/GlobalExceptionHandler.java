@@ -52,10 +52,10 @@ public class GlobalExceptionHandler {
         log.error("User not registered vip: {}", ex.getMessage());
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
     }
-    @ExceptionHandler(InvalidRenewalException.class)
-    public ResponseEntity<ResponseError<Object>> handleInvalidRenewalException(InvalidRenewalException ex) {
+    @ExceptionHandler(VipExpired.class)
+    public ResponseEntity<ResponseError<Object>> handleVipExpired (VipExpired ex) {
         ResponseError<Object> errorResponse = new ResponseError<>(400, ex.getMessage());
-        log.error("Renewal failed: {}", ex.getMessage());
+        log.error("Vip expired: {}", ex.getMessage());
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
     }
 }

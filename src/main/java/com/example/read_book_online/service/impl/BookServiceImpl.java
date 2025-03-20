@@ -2,6 +2,7 @@ package com.example.read_book_online.service.impl;
 
 import com.example.read_book_online.config.exception.BookNotFoundException;
 import com.example.read_book_online.config.exception.UserNotRegisteredVip;
+import com.example.read_book_online.config.exception.VipExpired;
 import com.example.read_book_online.dto.request.BookRequest;
 import com.example.read_book_online.dto.response.BookResponse;
 import com.example.read_book_online.dto.response.ResponseData;
@@ -161,7 +162,7 @@ public class BookServiceImpl implements BookService {
 
             // Kiểm tra trạng thái VIP (phải là ACTIVE)
             if (vipMembership.getVipStatusEnum() != VipStatusEnum.ACTIVE) {
-                throw new UserNotRegisteredVip("VIP membership is not active");
+                throw new VipExpired("VIP membership is expired. Please renewal vip membership");
             }
         }
 

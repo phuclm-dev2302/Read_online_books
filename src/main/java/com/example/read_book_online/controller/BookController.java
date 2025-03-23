@@ -27,6 +27,8 @@ public class BookController {
     @Operation(summary = "Admin add new book", description = "API cho admin them mot quyen sach moi")
     @PostMapping("")
     public ResponseEntity<ResponseData<BookResponse>> addBook(@ModelAttribute BookRequest bookRequest) {
+        System.out.println("📩 Full BookRequest: " + bookRequest);
+        System.out.println("📩 categoryIds from request: " + bookRequest.getCategoryIds());
         return ResponseEntity.ok(bookService.addBook(bookRequest));
     }
 

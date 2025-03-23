@@ -10,6 +10,7 @@ import com.example.read_book_online.entity.*;
 import com.example.read_book_online.enums.VipStatusEnum;
 import com.example.read_book_online.repository.*;
 import com.example.read_book_online.service.BookService;
+import com.example.read_book_online.service.CategoryService;
 import com.example.read_book_online.service.UserService;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
@@ -29,6 +30,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.List;
 import java.util.Optional;
 
 @Slf4j
@@ -49,12 +51,29 @@ public class BookServiceImpl implements BookService {
     private UserService userService;
     @Autowired
     private VipMembershipRepository vipMembershipRepository;
+    @Autowired
+    private CategoryService categoryService;
+
 
     @Override
     public ResponseData<BookResponse> addBook(BookRequest bookRequest) {
         try {
-            Category category = categoryRepository.findById(bookRequest.getCategoryId())
-                    .orElseThrow(() -> new RuntimeException("Category not found"));
+            // Lấy danh sách category từ danh sách ID nhập vào
+            List<Long> categoryIds= categoryService.getCategoryIdsAsList(bookRequest.getCategoryIds());
+            List<Category> categories = categoryRepository.findAllById(categoryIds);
+            System.out.println("Categories found: " + categories.size());
+            System.out.println("Category IDs received: " + bookRequest.getCategoryIds());
+
+            // Kiểm tra xem có ID nào không tồn tại
+            List<Long> foundCategoryIds = categories.stream().map(Category::getCategoryId).toList();
+            List<Long> missingIds = categoryIds.stream()
+                    .filter(id -> !foundCategoryIds.contains(id))
+                    .toList();
+
+            // Nếu có ID không hợp lệ, báo lỗi
+            if (!missingIds.isEmpty()) {
+                throw new RuntimeException("Category IDs not found: " + missingIds);
+            }
 
             Author author = authorRepository.findById(bookRequest.getAuthorId())
                     .orElseThrow(() -> new RuntimeException("Author not found"));
@@ -80,7 +99,7 @@ public class BookServiceImpl implements BookService {
             Book book = Book.builder()
                     .title(bookRequest.getTitle())
                     .author(author)
-                    .category(category)
+                    .categories(categories)
                     .pdfFilePath(filePath)
                     .isVip(bookRequest.getIsVip())
                     .interactions(null)

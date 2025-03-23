@@ -16,9 +16,13 @@ public class Book {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long bookId;
 
-    @ManyToOne
-    @JoinColumn(name = "category_id", nullable = false)
-    private Category category;
+    @ManyToMany
+    @JoinTable(
+            name = "book_category", // Tên bảng trung gian
+            joinColumns = @JoinColumn(name = "book_id"), // Cột liên kết với Book
+            inverseJoinColumns = @JoinColumn(name = "category_id") // Cột liên kết với Category
+    )
+    private List<Category> categories;
 
     @ManyToOne
     @JoinColumn(name = "author_id", nullable = false)

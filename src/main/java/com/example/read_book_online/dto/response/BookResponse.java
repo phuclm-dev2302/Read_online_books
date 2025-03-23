@@ -2,9 +2,11 @@ package com.example.read_book_online.dto.response;
 
 import com.example.read_book_online.entity.Book;
 import com.example.read_book_online.entity.BookInteraction;
+import com.example.read_book_online.entity.Category;
 import com.example.read_book_online.repository.BookRepository;
 import lombok.Builder;
 import lombok.Data;
+import org.hibernate.boot.archive.scan.spi.ClassDescriptor;
 
 import java.util.List;
 
@@ -15,7 +17,7 @@ public class BookResponse {
 
     private String title;
 
-    private String categoryName;
+    private List<String> categories;
 
     private String authorName;
 
@@ -28,9 +30,9 @@ public class BookResponse {
     public static BookResponse from(Book book, BookRepository bookRepository) {
         return BookResponse.builder()
                 .bookId(book.getBookId())
-                .categoryName(book.getCategory().getCategoryName())
                 .authorName(book.getAuthor().getAuthorName())
                 .title(book.getTitle())
+                .categories(book.getCategories().stream().map(Category::getCategoryName).toList())
                 .pdfFilePath(book.getPdfFilePath())
                 .totalLikes(bookRepository.countLikesByBookId(book.getBookId()))
                 .totalViews(bookRepository.sumViewsByBookId(book.getBookId()))

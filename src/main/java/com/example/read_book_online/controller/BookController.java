@@ -16,6 +16,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.FileNotFoundException;
+import java.util.List;
 
 
 @RestController
@@ -62,6 +63,21 @@ public class BookController {
 
         ResponseData<Page<BookResponse>> result = bookService.getBooks(page, size);
         return ResponseEntity.status(HttpStatus.OK).body(result);
+    }
+
+    @PostMapping("/favorite/add/{id}")
+    public  ResponseEntity<ResponseData<String>> addFavouriteBook (@PathVariable("id") Long id) {
+        return ResponseEntity.ok(bookService.addBookFavorite(id));
+    }
+
+    @PostMapping("/favorite/remove/{id}")
+    public ResponseEntity<ResponseData<String>> RemoveFavouriteBook (@PathVariable("id") Long id) {
+        return ResponseEntity.ok(bookService.removeBookFavorite(id));
+    }
+
+    @GetMapping("/favorite/")
+    public ResponseEntity<ResponseData<List<BookResponse>>> getMyFavouriteBooks() {
+        return ResponseEntity.ok(bookService.getFavoriteBooks());
     }
 
 }

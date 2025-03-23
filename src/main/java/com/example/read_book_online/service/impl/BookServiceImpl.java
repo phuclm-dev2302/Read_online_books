@@ -60,7 +60,7 @@ public class BookServiceImpl implements BookService {
     public ResponseData<BookResponse> addBook(BookRequest bookRequest) {
         try {
             // Lấy danh sách category từ danh sách ID nhập vào
-            List<Long> categoryIds= categoryService.getCategoryIdsAsList(bookRequest.getCategoryIds());
+            List<Long> categoryIds = categoryService.getCategoryIdsAsList(bookRequest.getCategoryIds());
             List<Category> categories = categoryRepository.findAllById(categoryIds);
             System.out.println("Categories found: " + categories.size());
             System.out.println("Category IDs received: " + bookRequest.getCategoryIds());
@@ -108,7 +108,7 @@ public class BookServiceImpl implements BookService {
 
             bookRepository.save(book);
 
-            return new ResponseData<>(200, "Book uploaded successfully",BookResponse.from(book, bookRepository));
+            return new ResponseData<>(200, "Book uploaded successfully", BookResponse.from(book, bookRepository));
 
         } catch (IOException e) {
             return new ResponseData<>(500, "Failed to upload PDF file", null);
@@ -202,17 +202,56 @@ public class BookServiceImpl implements BookService {
         return new InputStreamResource(new FileInputStream(pdfFile));
     }
 
-
     @Override
     public ResponseData<Page<BookResponse>> getBooks(int page, int size) {
-        Pageable pageable = PageRequest.of(page,size);
+        Pageable pageable = PageRequest.of(page, size);
 
         Page<Book> books = bookRepository.findAll(pageable);
-        if (books.isEmpty()){
+        if (books.isEmpty()) {
             throw new BookNotFoundException("Book not found");
         }
 
         Page<BookResponse> bookResponses = books.map(book -> BookResponse.from(book, bookRepository));
         return new ResponseData<>(200, "Books found", bookResponses);
+    }
+
+    @Override
+    public ResponseData<String> addBookFavorite(Long bookId) {
+        User user = userService.getUserBySecurity();
+        Book book = bookRepository.findById(bookId)
+                .orElseThrow(() -> new RuntimeException("Book not found"));
+        if (!user.getFavoriteBooks().contains(book)) {
+            user.getFavoriteBooks().add(book);
+            userRepository.save(user);
+        }
+        return new ResponseData<>(200, "add successfully");
+    }
+
+    @Override
+    public ResponseData<String> removeBookFavorite(Long bookId) {
+        User user = userService.getUserBySecurity();
+        Book book = bookRepository.findById(bookId)
+                .orElseThrow(() -> new RuntimeException("Book not found"));
+        if (user.getFavoriteBooks().contains(book)) {
+            user.getFavoriteBooks().remove(book);
+            userRepository.save(user);
+        }
+        return new ResponseData<>(200, "remove successfully");
+    }
+
+    @Override
+    public ResponseData<List<BookResponse>> getFavoriteBooks() {
+        User user = userService.getUserBySecurity();
+        List<Book> favoriteBooks = user.getFavoriteBooks();
+
+        if (favoriteBooks.isEmpty()) {
+            return new ResponseData<>(200, "No favorite books found", null);
+        }
+
+        List<BookResponse> data = favoriteBooks.stream()
+                .map(book -> BookResponse.from(book, bookRepository))
+                .toList();
+
+        return new ResponseData<>(200, "Get success", data);
     }
 }

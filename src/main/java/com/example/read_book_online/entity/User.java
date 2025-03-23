@@ -52,6 +52,14 @@ public class User implements UserDetails {
 
     private LocalDate setCreatedDate;
 
+    @ManyToMany
+    @JoinTable(
+            name = "user_favorite_books",
+            joinColumns = @JoinColumn(name = "user_id"),
+            inverseJoinColumns = @JoinColumn(name = "book_id")
+    )
+    private List<Book> favoriteBooks;
+
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     private List<BookInteraction> interactions; // Danh sách sách đã like hoặc xem
 
@@ -88,5 +96,15 @@ public class User implements UserDetails {
     @Override
     public boolean isEnabled() {
         return status == StatusEnum.ACTIVE;
+    }
+
+    public void addFavoriteBook(Book book) {
+        if (!favoriteBooks.contains(book)) {
+            favoriteBooks.add(book);
+        }
+    }
+
+    public void removeFavoriteBook(Book book) {
+        favoriteBooks.remove(book);
     }
 }

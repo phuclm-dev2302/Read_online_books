@@ -19,12 +19,12 @@ public class VipMembershipController {
     private final VipMembershipService vipMembershipService;
 
     @PostMapping
-    public ResponseEntity<ResponseData<VipMembershipResponse>> registerVip(@RequestBody @Valid VipMembershipRequest vipMembershipRequest) {
-        return ResponseEntity.ok(vipMembershipService.registerVip(vipMembershipRequest));
+    public ResponseEntity<ResponseData<VipMembershipResponse>> registerVip(@RequestParam int time) {
+        return ResponseEntity.ok(vipMembershipService.registerVip(time));
     }
     @PutMapping
-    public ResponseEntity<ResponseData<VipMembershipResponse>> renewalVip(@RequestBody @Valid RenewalRequest renewalRequest) {
-        return ResponseEntity.ok(vipMembershipService.renewalVip(renewalRequest));
+    public ResponseEntity<ResponseData<VipMembershipResponse>> renewalVip(@RequestParam int time) {
+        return ResponseEntity.ok(vipMembershipService.renewalVip(time));
     }
     @GetMapping
     public ResponseEntity<ResponseData<VipMembershipResponse>> getVip() {

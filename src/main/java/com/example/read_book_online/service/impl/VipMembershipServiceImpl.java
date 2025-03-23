@@ -1,9 +1,6 @@
 package com.example.read_book_online.service.impl;
-import com.example.read_book_online.config.exception.InvalidRenewalException;
 import com.example.read_book_online.config.exception.UserAlreadyVipException;
 import com.example.read_book_online.config.exception.UserNotRegisteredVip;
-import com.example.read_book_online.dto.request.RenewalRequest;
-import com.example.read_book_online.dto.request.VipMembershipRequest;
 import com.example.read_book_online.dto.response.ResponseData;
 import com.example.read_book_online.dto.response.VipMembershipResponse;
 import com.example.read_book_online.entity.User;
@@ -17,7 +14,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
-import java.time.temporal.ChronoUnit;
 import java.util.Optional;
 
 @Service
@@ -28,7 +24,7 @@ public class VipMembershipServiceImpl implements VipMembershipService {
     private final VipMembershipRepository vipMembershipRepository;
 
     @Override
-    public ResponseData<VipMembershipResponse> registerVip(VipMembershipRequest vipMembershipRequest) {
+    public ResponseData<VipMembershipResponse> registerVip(int time ) {
         User user = userService.getUserBySecurity();
 
         // Kiểm tra xem user đã có gói VIP chưa
@@ -38,38 +34,18 @@ public class VipMembershipServiceImpl implements VipMembershipService {
         }
 
         // Nếu chưa có, tạo mới VIP Membership
-        VipMembership vipMembership = VipMembership.builder()
-                .user(user)
-                .startDate(vipMembershipRequest.getStartDate())
-                .endDate(vipMembershipRequest.getEndDate())
-                .vipStatusEnum(VipStatusEnum.ACTIVE)
-                .build();
-        vipMembershipRepository.save(vipMembership);
-
-        return new ResponseData<>(200, "Register VipMembership successfully", VipMembershipResponse.from(vipMembership));
+        VipMembership vipm = createVipmember(user, time);
+        return new ResponseData<>(200, "Register VipMembership successfully", VipMembershipResponse.from(vipm));
     }
 
     @Override
-    public ResponseData<VipMembershipResponse> renewalVip(RenewalRequest renewalRequest) {
+    public ResponseData<VipMembershipResponse> renewalVip(int time) {
         User user = userService.getUserBySecurity();
         VipMembership vipMembership = vipMembershipRepository.findByUserUserId(user.getUserId())
-                .orElseThrow(() -> new UserNotRegisteredVip("User not registered VIP!"));
+                .orElseThrow(() -> new UserNotRegisteredVip("User not registered VIP!, please register VIP first."));
 
-        LocalDate newEndDate = renewalRequest.getEndDate(); // Ngày mới từ request
-        LocalDate currentEndDate = vipMembership.getEndDate(); // Ngày hết hạn hiện tại trong DB
+        vipMembership.setEndDate(vipMembership.getEndDate().plusMonths(time));
 
-        // Kiểm tra ngày nhập phải sau ngày hiện tại
-        if (newEndDate.isBefore(LocalDate.now())) {
-            throw new InvalidRenewalException("End date must be in the future!");
-        }
-
-        // Kiểm tra ngày nhập phải sau ngày hết hạn hiện tại
-        if (newEndDate.isBefore(currentEndDate)) {
-            throw new InvalidRenewalException("End date must be after the current expiration date!");
-        }
-
-        // Cập nhật ngày hết hạn mới
-        vipMembership.setEndDate(newEndDate);
         vipMembershipRepository.save(vipMembership);
 
         return new ResponseData<>(200, "Renewal VipMembership successfully", VipMembershipResponse.from(vipMembership));
@@ -94,6 +70,18 @@ public class VipMembershipServiceImpl implements VipMembershipService {
             vipMembership.setVipStatusEnum(VipStatusEnum.EXPIRED);
             vipMembershipRepository.save(vipMembership);
         }
+    }
+
+    @Override
+    public VipMembership createVipmember(User user,int time){
+        VipMembership vipMembership = VipMembership.builder()
+                .user(user)
+                .startDate(LocalDate.now())
+                .endDate(LocalDate.now().plusMonths(time))
+                .vipStatusEnum(VipStatusEnum.ACTIVE)
+                .build();
+        vipMembershipRepository.save(vipMembership);
+        return vipMembership;
     }
 
 }

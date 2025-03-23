@@ -1,6 +1,5 @@
 package com.example.read_book_online.service.impl;
 
-
 import com.example.read_book_online.dto.request.SignInRequest;
 import com.example.read_book_online.dto.request.SignUpRequest;
 import com.example.read_book_online.dto.response.AuthResponse;
@@ -18,18 +17,15 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.ResponseEntity;
+
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
+import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
@@ -59,59 +55,39 @@ public class AuthServiceImpl implements AuthService {
     private RestTemplate restTemplate;
 
     @Override
-    public ResponseData<AuthResponse> loginWithGoogle(String accessToken) {
-        // Gọi API Google để lấy thông tin user
-        HttpHeaders headers = new HttpHeaders();
-        headers.set("Authorization", "Bearer " + accessToken);
-        HttpEntity<String> entity = new HttpEntity<>(headers);
+    public AuthResponse handleGoogleRedirect(OAuth2AuthenticationToken authenticationToken) {
+//        OAuth2AuthenticationToken authenticationToken =
+//                (OAuth2AuthenticationToken) SecurityContextHolder.getContext().getAuthentication();
+//
+//        if (authenticationToken == null) {
+//            throw new RuntimeException("Authentication Token is null");
+//        }
 
-        ResponseEntity<Map> response = restTemplate.exchange(
-                "https://www.googleapis.com/oauth2/v3/userinfo",
-                HttpMethod.GET,
-                entity,
-                Map.class
-        );
+        OAuth2User oAuth2User = authenticationToken.getPrincipal();
+        String email = oAuth2User.getAttribute("email");
+        String name = oAuth2User.getAttribute("name");
 
-        Map<String, Object> userInfo = response.getBody();
-        if (userInfo == null || !userInfo.containsKey("email")) {
-            return new ResponseError<>(400, "Không lấy được thông tin từ Google.");
-        }
+        // Kiểm tra xem người dùng đã tồn tại trong cơ sở dữ liệu chưa
+        Optional<User> existingUser = userRepository.findByEmail(email);
 
-        // Lấy thông tin từ Google
-        String email = (String) userInfo.get("email");
-        String name = (String) userInfo.get("name");
-
-        // Kiểm tra user đã tồn tại chưa
-        User user = userRepository.findByEmail(email).orElse(null);
-
-        if (user == null) {
-            // Lấy role mặc định
-            Role role = roleRepository.findByName("ROLE_USER")
-                    .orElseThrow(() -> new RuntimeException("Role not found"));
-
-            user = User.builder()
-                    .email(email)
-                    .username(name)
-                    .role(role)
-                    .status(StatusEnum.ACTIVE)
-                    .build();
+        User user;
+        if (existingUser.isPresent()) {
+            user = existingUser.get();
+        } else {
+            // Nếu người dùng chưa tồn tại, tạo người dùng mới
+            user = new User();
+            user.setEmail(email);
+            user.setUsername(name);
+            user.setStatus(StatusEnum.ACTIVE);
             userRepository.save(user);
         }
 
-        // Tạo đối tượng Authentication từ user
-        Authentication authentication = new UsernamePasswordAuthenticationToken(
-                user.getEmail(),
-                null,
-                Collections.singletonList(new SimpleGrantedAuthority(user.getRole().getName()))
-        );
-
-        // Tạo JWT token
-        String token = jwtProvider.generateToken(authentication);
-
-        // Trả về AuthResponse
-        AuthResponse authResponse = AuthResponse.from(user, token);
-        return new ResponseData<>(200, "Đăng nhập thành công!", authResponse);
+        // Xác thực người dùng và tạo JWT token
+        String token = jwtProvider.generateToken(
+                new UsernamePasswordAuthenticationToken(user.getEmail(), null, Collections.emptyList()));
+        return new AuthResponse(user.getUserId(), token, user.getUsername());
     }
+
 
     @Override
     public ResponseData<AuthResponse> login(SignInRequest form) {

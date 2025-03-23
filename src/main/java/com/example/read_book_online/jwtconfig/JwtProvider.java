@@ -29,7 +29,7 @@ public class JwtProvider {
                 .withSubject(auth.getName())
                 .withClaim("role", auth.getAuthorities().stream()
                         .map(GrantedAuthority::getAuthority)
-                        .findFirst().orElse(null))
+                        .findFirst().orElse("ROLE_USER"))
                 .sign(Algorithm.HMAC512(jwtProperties.getPrivateKey()));
     }
     // validate token

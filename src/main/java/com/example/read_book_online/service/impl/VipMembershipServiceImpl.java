@@ -17,7 +17,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
-import java.time.temporal.ChronoUnit;
 import java.util.Optional;
 
 @Service
@@ -28,7 +27,7 @@ public class VipMembershipServiceImpl implements VipMembershipService {
     private final VipMembershipRepository vipMembershipRepository;
 
     @Override
-    public ResponseData<VipMembershipResponse> registerVip(VipMembershipRequest vipMembershipRequest) {
+    public ResponseData<VipMembershipResponse> registerVip(int time ) {
         User user = userService.getUserBySecurity();
 
         // Kiểm tra xem user đã có gói VIP chưa
@@ -38,15 +37,8 @@ public class VipMembershipServiceImpl implements VipMembershipService {
         }
 
         // Nếu chưa có, tạo mới VIP Membership
-        VipMembership vipMembership = VipMembership.builder()
-                .user(user)
-                .startDate(vipMembershipRequest.getStartDate())
-                .endDate(vipMembershipRequest.getEndDate())
-                .vipStatusEnum(VipStatusEnum.ACTIVE)
-                .build();
-        vipMembershipRepository.save(vipMembership);
-
-        return new ResponseData<>(200, "Register VipMembership successfully", VipMembershipResponse.from(vipMembership));
+        VipMembership vipm = createVipmember(user, time);
+        return new ResponseData<>(200, "Register VipMembership successfully", VipMembershipResponse.from(vipm));
     }
 
     @Override
@@ -94,6 +86,18 @@ public class VipMembershipServiceImpl implements VipMembershipService {
             vipMembership.setVipStatusEnum(VipStatusEnum.EXPIRED);
             vipMembershipRepository.save(vipMembership);
         }
+    }
+
+    @Override
+    public VipMembership createVipmember(User user,int time){
+        VipMembership vipMembership = VipMembership.builder()
+                .user(user)
+                .startDate(LocalDate.now())
+                .endDate(LocalDate.now().plusDays(time))
+                .vipStatusEnum(VipStatusEnum.ACTIVE)
+                .build();
+        vipMembershipRepository.save(vipMembership);
+        return vipMembership;
     }
 
 }

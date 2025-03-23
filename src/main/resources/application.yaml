@@ -1,0 +1,18 @@
+momo:
+  partnerCode: your_partner_code
+  accessKey: your_access_key
+  secretKey: your_secret_key
+  endpoint: https://test-payment.momo.vn/v2/gateway/api/create
+
+ghn:
+  apiUrl:
+    getProvinces: https://online-gateway.ghn.vn/shiip/public-api/master-data/province
+    getDistrict: https://online-gateway.ghn.vn/shiip/public-api/master-data/district
+    getWard: https://online-gateway.ghn.vn/shiip/public-api/master-data/ward?district_id
+
+openapi:
+  service:
+    api-docs: api-service
+    server: http://localhost:8080
+    title: API Service
+    version: 1.0.0

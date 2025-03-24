@@ -85,7 +85,6 @@ public class BookServiceImpl implements BookService {
             if (bookRequest.getPdfFile() != null && !bookRequest.getPdfFile().isEmpty()) {
                 MultipartFile file = bookRequest.getPdfFile();
                 Path uploadPath = Paths.get(UPLOAD_DIR);
-
                 if (!Files.exists(uploadPath)) {
                     Files.createDirectories(uploadPath);
                 }

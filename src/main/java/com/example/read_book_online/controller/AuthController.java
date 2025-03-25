@@ -35,7 +35,7 @@ public class AuthController {
         ResponseData<AuthResponse> response = authService.login(signInForm);
         return ResponseEntity.status(response.getStatus()).body(response);
     }
-
+    @Operation(summary = "User login with google account", description = "Authenticate user by google account")
     @GetMapping("/login/oauth2/google-redirect")
     public ResponseData<AuthResponse> googleRedirect() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -71,7 +71,7 @@ public class AuthController {
         }
         return ResponseEntity.status(response.getStatus()).body(response);
     }
-
+    @Operation(summary = "logout the account", description = "logout the account and disable JWT")
     @PostMapping("/logout")
     public ResponseEntity<ResponseData<String>> logout(HttpServletRequest request, HttpServletResponse response) {
         return ResponseEntity.ok(authService.logout(request, response));

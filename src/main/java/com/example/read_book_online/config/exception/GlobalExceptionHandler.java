@@ -58,6 +58,18 @@ public class GlobalExceptionHandler {
         log.error("Vip expired: {}", ex.getMessage());
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
     }
+    @ExceptionHandler(CategoryNotFoundException.class)
+    public ResponseEntity<ResponseError<Object>> handleCategoryNotFound (CategoryNotFoundException ex) {
+        ResponseError<Object> errorResponse = new ResponseError<>(400, ex.getMessage());
+        log.error("Category not found: {}", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+    }
+    @ExceptionHandler(AuthorNotFoundException.class)
+    public ResponseEntity<ResponseError<Object>> handleAuthorNotFound (AuthorNotFoundException ex) {
+        ResponseError<Object> errorResponse = new ResponseError<>(400, ex.getMessage());
+        log.error("Author not found: {}", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+    }
 }
 
 

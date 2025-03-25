@@ -8,6 +8,8 @@ import com.example.read_book_online.dto.response.BookResponse;
 import com.example.read_book_online.dto.response.ResponseData;
 import com.example.read_book_online.dto.response.ResponseError;
 import com.example.read_book_online.entity.*;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.PageRequest;
 import com.example.read_book_online.enums.VipStatusEnum;
 import com.example.read_book_online.repository.*;
 import com.example.read_book_online.service.BookService;
@@ -31,6 +33,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -62,8 +65,6 @@ public class BookServiceImpl implements BookService {
             // Lấy danh sách category từ danh sách ID nhập vào
             List<Long> categoryIds = categoryService.getCategoryIdsAsList(bookRequest.getCategoryIds());
             List<Category> categories = categoryRepository.findAllById(categoryIds);
-            System.out.println("Categories found: " + categories.size());
-            System.out.println("Category IDs received: " + bookRequest.getCategoryIds());
 
             // Kiểm tra xem có ID nào không tồn tại
             List<Long> foundCategoryIds = categories.stream().map(Category::getCategoryId).toList();
@@ -101,6 +102,7 @@ public class BookServiceImpl implements BookService {
                     .author(author)
                     .categories(categories)
                     .pdfFilePath(filePath)
+                    .createDate(LocalDate.now())
                     .isVip(bookRequest.getIsVip())
                     .interactions(null)
                     .build();
@@ -253,4 +255,42 @@ public class BookServiceImpl implements BookService {
 
         return new ResponseData<>(200, "Get success", data);
     }
+
+    @Override
+    public ResponseData<List<BookResponse>> getLatestBooks() {
+        List<Book> latestBooks = bookRepository.findLatestBooks();
+
+        if (latestBooks.isEmpty()) {
+            return new ResponseData<>(404, "No books found", null);
+        }
+
+        List<BookResponse> bookResponses = latestBooks.stream()
+                .map(book -> BookResponse.from(book, bookRepository))
+                .toList();
+
+        return new ResponseData<>(200, "Latest books", bookResponses);
+    }
+
+    @Override
+    public ResponseData<List<BookResponse>> getTopBooks() {
+        List<Book> topBooks = bookRepository.findTopBooks();
+
+        List<BookResponse> bookResponses = topBooks.stream()
+                .map(book -> BookResponse.from(book, bookRepository))
+                .toList();
+        return new ResponseData<>(200, "Get success", bookResponses);
+    }
+
+    public ResponseData<List<BookResponse>> getSuggestedBooks() {
+        User user = userService.getUserBySecurity();
+
+        Pageable pageable = PageRequest.of(0, 10);
+        List<Book> suggestedBooks = bookRepository.findSuggestedBooks(user.getUserId(),pageable);
+
+        List<BookResponse> bookResponses = suggestedBooks.stream()
+                .map(book -> BookResponse.from(book, bookRepository))
+                .toList();
+        return new ResponseData<>(200, "Suggested books fetched successfully", bookResponses);
+    }
+
 }

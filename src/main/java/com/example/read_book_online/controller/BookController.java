@@ -68,34 +68,46 @@ public class BookController {
         return ResponseEntity.status(HttpStatus.OK).body(result);
     }
 
+    @Operation(summary = "Users add books to favorites ", description = "API cho người dung thêm vào mục yêu thích")
     @PostMapping("/favorite/add/{id}")
     public  ResponseEntity<ResponseData<String>> addFavouriteBook (@PathVariable("id") Long id) {
         return ResponseEntity.ok(bookService.addBookFavorite(id));
     }
 
+    @Operation(summary = "User deletes book from favorites", description = "API cho người dùng xoá sách khỏi mục yêu thích")
     @PostMapping("/favorite/remove/{id}")
     public ResponseEntity<ResponseData<String>> RemoveFavouriteBook (@PathVariable("id") Long id) {
         return ResponseEntity.ok(bookService.removeBookFavorite(id));
     }
 
+    @Operation(summary = "User view their wishlist ", description = "API cho ngươời dùng xem danh sách yêu  thích của họ")
     @GetMapping("/favorite")
     public ResponseEntity<ResponseData<List<BookResponse>>> getMyFavouriteBooks() {
         return ResponseEntity.ok(bookService.getFavoriteBooks());
     }
 
+    @Operation(summary = "User add a bookmark", description = "API cho người dùng thêm đánh dấu vào sách")
     @PostMapping("/bookmark/add")
     public ResponseEntity<ResponseData<BookmarkResponse>> bookmarkBook(@RequestBody BookmarkRequest bookmarkRequest) {
         return ResponseEntity.ok(bookmarkService.addBookmark(bookmarkRequest));
     }
-
+    @Operation(summary = "User delete bookmark", description = "API cho người dùng xoã đánh dấu")
     @DeleteMapping("/bookmark/remove/{id}")
     public ResponseEntity<ResponseData<String>> deleteBookmarkBook(@PathVariable("id") Long id) {
         return ResponseEntity.ok(bookmarkService.deleteBookmark(id));
     }
-
+    @Operation(summary = "User view all their bookmark", description = "API cho người dùng xem tất cả các sách đã đaánh dấu")
     @GetMapping("bookmark/me")
     public ResponseEntity<ResponseData<List<BookmarkResponse>>> getMyBookmarks() {
         return ResponseEntity.ok(bookmarkService.getMyBookmarks());
+    }
+    @GetMapping("/latest")
+    public ResponseEntity<ResponseData<List<BookResponse>>> getLatestBooks() {
+        return ResponseEntity.ok(bookService.getLatestBooks());
+    }
+    @GetMapping("/suggested")
+    public ResponseEntity<ResponseData<List<BookResponse>>> getSuggestedBooks() {
+        return ResponseEntity.ok(bookService.getSuggestedBooks());
     }
     @Operation(summary = "tim kiem sach theo ten danh muc", description = "tim kiem sach theo mot hoac nhieu danh muc")
     @GetMapping("search/category")

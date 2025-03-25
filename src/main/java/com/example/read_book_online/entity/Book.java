@@ -3,6 +3,7 @@ package com.example.read_book_online.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @Entity
@@ -29,6 +30,8 @@ public class Book {
     private Author author;
 
     private String title;
+
+    private LocalDate createDate;
 
     private String pdfFilePath;
 

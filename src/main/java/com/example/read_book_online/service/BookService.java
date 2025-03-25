@@ -18,4 +18,9 @@ public interface BookService {
     ResponseData<String> addBookFavorite(Long bookId);
     ResponseData<String> removeBookFavorite(Long bookId);
     ResponseData<List<BookResponse>> getFavoriteBooks ();
+    ResponseData<List<BookResponse>> searchBookByCategoryNames(List<String> categoryNames);
+    ResponseData<List<BookResponse>> searchBookByAuthorNames(List<String> authorNames);
+    ResponseData<List<BookResponse>> searchBooksByTitle(String title);
+    ResponseData<List<BookResponse>> getTopViewedBooks(int limit);
+    ResponseData<List<BookResponse>> getTopLikedBooks(int limit);
 }

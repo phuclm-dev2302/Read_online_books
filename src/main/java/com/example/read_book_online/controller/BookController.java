@@ -97,5 +97,29 @@ public class BookController {
     public ResponseEntity<ResponseData<List<BookmarkResponse>>> getMyBookmarks() {
         return ResponseEntity.ok(bookmarkService.getMyBookmarks());
     }
-
+    @Operation(summary = "tim kiem sach theo ten danh muc", description = "tim kiem sach theo mot hoac nhieu danh muc")
+    @GetMapping("search/category")
+    public ResponseEntity<ResponseData<List<BookResponse>>> searchBookByCategoryNames(@RequestParam List<String> categoryNames){
+        return ResponseEntity.ok(bookService.searchBookByCategoryNames(categoryNames));
+    }
+    @Operation(summary = "tim kiem sach theo ten tac gia", description = "tim kiem sach theo ten tac gia co lien quan")
+    @GetMapping("search/author")
+    public ResponseEntity<ResponseData<List<BookResponse>>> searchBookByAuthor(@RequestParam List<String> authorNames){
+        return ResponseEntity.ok(bookService.searchBookByAuthorNames(authorNames));
+    }
+    @Operation(summary = "tim kiem theo ten sach", description = "tim kiem sach theo ten sach lien quan den")
+    @GetMapping("/search/title")
+    public ResponseEntity<ResponseData<List<BookResponse>>> searchBooksByTitle(@RequestParam String title) {
+        return ResponseEntity.ok(bookService.searchBooksByTitle(title));
+    }
+    @Operation(summary = "lay muoi sach luot like cao nhat",description = "lay 10 cuon sach co luot like cao nhat")
+    @GetMapping("search/top-liked")
+    public ResponseEntity<ResponseData<List<BookResponse>>> getTopLikedBooks(@RequestParam(defaultValue = "10") int limit) {
+        return ResponseEntity.ok(bookService.getTopLikedBooks(limit));
+    }
+    @Operation(summary = "Lay muoi cuon sach co luot xem nhieu nhat", description = "lay muoi cuon sach co luot xem nhieu nhat")
+    @GetMapping("search/top-viewed")
+    public ResponseEntity<ResponseData<List<BookResponse>>> getTopViewedBooks(@RequestParam(defaultValue = "10") int limit) {
+        return ResponseEntity.ok(bookService.getTopViewedBooks(limit));
+    }
 }

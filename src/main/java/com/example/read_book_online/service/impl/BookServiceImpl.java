@@ -1,8 +1,6 @@
 package com.example.read_book_online.service.impl;
 
-import com.example.read_book_online.config.exception.BookNotFoundException;
-import com.example.read_book_online.config.exception.UserNotRegisteredVip;
-import com.example.read_book_online.config.exception.VipExpired;
+import com.example.read_book_online.config.exception.*;
 import com.example.read_book_online.dto.request.BookRequest;
 import com.example.read_book_online.dto.response.BookResponse;
 import com.example.read_book_online.dto.response.ResponseData;
@@ -252,5 +250,83 @@ public class BookServiceImpl implements BookService {
                 .toList();
 
         return new ResponseData<>(200, "Get success", data);
+    }
+
+    @Override
+    public ResponseData<List<BookResponse>> searchBookByCategoryNames(List<String> categoryNames) {
+        List<Category> existingCategories = categoryRepository.findByCategoryNameIn(categoryNames);
+
+        if (existingCategories.isEmpty()) {
+            throw new CategoryNotFoundException("Category not found");
+        }
+        List<Book> books = bookRepository.findByCategoryNames(categoryNames);
+        if (books.isEmpty()) {
+            throw new BookNotFoundException("No books found in the selected category!");
+        }
+        List<BookResponse> bookResponses = books.stream()
+                .map(book -> BookResponse.from(book, bookRepository))
+                .toList();
+
+        return new ResponseData<>(200,"search book by category name success",bookResponses);
+    }
+
+    @Override
+    public ResponseData<List<BookResponse>> searchBookByAuthorNames(List<String> authorNames) {
+        List<Author> existingAuthors = authorRepository.findByAuthorNameIn(authorNames);
+        if (existingAuthors.isEmpty()) {
+            throw new AuthorNotFoundException("Author not found");
+        }
+        List<Book> books = bookRepository.findByAuthorNames(authorNames);
+        if (books.isEmpty()) {
+            throw new BookNotFoundException("No books found in the selected author!");
+        }
+        List<BookResponse> bookResponses = books.stream()
+                .map(book -> BookResponse.from(book,bookRepository))
+                .toList();
+        return new ResponseData<>(200,"search book by author name success", bookResponses);
+
+    }
+    @Override
+    public ResponseData<List<BookResponse>> searchBooksByTitle(String title) {
+        List<Book> books = bookRepository.findByTitleContainingIgnoreCase(title);
+
+        if (books.isEmpty()) {
+            throw new BookNotFoundException("Book not found with title: " + title);
+        }
+
+        List<BookResponse> bookResponses = books.stream()
+                .map(book -> BookResponse.from(book, bookRepository))
+                .toList();
+
+        return new ResponseData<>(200, "seach book by title " + title + "success", bookResponses);
+    }
+    @Override
+    public ResponseData<List<BookResponse>> getTopLikedBooks(int limit) {
+        List<Book> books = bookRepository.findBooksByMostLikes(PageRequest.of(0, limit));
+
+        if (books.isEmpty()) {
+            throw new BookNotFoundException("Book not found with most likes");
+        }
+
+        List<BookResponse> bookResponses = books.stream()
+                .map(book -> BookResponse.from(book, bookRepository))
+                .toList();
+
+        return new ResponseData<>(200, "get top liked books success", bookResponses);
+    }
+
+    @Override
+    public ResponseData<List<BookResponse>> getTopViewedBooks(int limit) {
+        List<Book> books = bookRepository.findBooksByMostViews(PageRequest.of(0, limit));
+
+        if (books.isEmpty()) {
+            throw new BookNotFoundException("Book not found with most views");
+        }
+
+        List<BookResponse> bookResponses = books.stream()
+                .map(book -> BookResponse.from(book, bookRepository))
+                .toList();
+
+        return new ResponseData<>(200, "Get top viewed books success", bookResponses);
     }
 }

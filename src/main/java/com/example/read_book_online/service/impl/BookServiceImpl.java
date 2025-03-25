@@ -2,6 +2,7 @@ package com.example.read_book_online.service.impl;
 
 import com.example.read_book_online.config.exception.BookNotFoundException;
 import com.example.read_book_online.config.exception.UserNotRegisteredVip;
+import com.example.read_book_online.config.exception.VipExpired;
 import com.example.read_book_online.dto.request.BookRequest;
 import com.example.read_book_online.dto.response.BookResponse;
 import com.example.read_book_online.dto.response.ResponseData;
@@ -10,6 +11,7 @@ import com.example.read_book_online.entity.*;
 import com.example.read_book_online.enums.VipStatusEnum;
 import com.example.read_book_online.repository.*;
 import com.example.read_book_online.service.BookService;
+import com.example.read_book_online.service.CategoryService;
 import com.example.read_book_online.service.UserService;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
@@ -29,6 +31,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.List;
 import java.util.Optional;
 
 @Slf4j
@@ -49,12 +52,29 @@ public class BookServiceImpl implements BookService {
     private UserService userService;
     @Autowired
     private VipMembershipRepository vipMembershipRepository;
+    @Autowired
+    private CategoryService categoryService;
+
 
     @Override
     public ResponseData<BookResponse> addBook(BookRequest bookRequest) {
         try {
-            Category category = categoryRepository.findById(bookRequest.getCategoryId())
-                    .orElseThrow(() -> new RuntimeException("Category not found"));
+            // Lấy danh sách category từ danh sách ID nhập vào
+            List<Long> categoryIds = categoryService.getCategoryIdsAsList(bookRequest.getCategoryIds());
+            List<Category> categories = categoryRepository.findAllById(categoryIds);
+            System.out.println("Categories found: " + categories.size());
+            System.out.println("Category IDs received: " + bookRequest.getCategoryIds());
+
+            // Kiểm tra xem có ID nào không tồn tại
+            List<Long> foundCategoryIds = categories.stream().map(Category::getCategoryId).toList();
+            List<Long> missingIds = categoryIds.stream()
+                    .filter(id -> !foundCategoryIds.contains(id))
+                    .toList();
+
+            // Nếu có ID không hợp lệ, báo lỗi
+            if (!missingIds.isEmpty()) {
+                throw new RuntimeException("Category IDs not found: " + missingIds);
+            }
 
             Author author = authorRepository.findById(bookRequest.getAuthorId())
                     .orElseThrow(() -> new RuntimeException("Author not found"));
@@ -65,7 +85,6 @@ public class BookServiceImpl implements BookService {
             if (bookRequest.getPdfFile() != null && !bookRequest.getPdfFile().isEmpty()) {
                 MultipartFile file = bookRequest.getPdfFile();
                 Path uploadPath = Paths.get(UPLOAD_DIR);
-
                 if (!Files.exists(uploadPath)) {
                     Files.createDirectories(uploadPath);
                 }
@@ -80,7 +99,7 @@ public class BookServiceImpl implements BookService {
             Book book = Book.builder()
                     .title(bookRequest.getTitle())
                     .author(author)
-                    .category(category)
+                    .categories(categories)
                     .pdfFilePath(filePath)
                     .isVip(bookRequest.getIsVip())
                     .interactions(null)
@@ -88,7 +107,7 @@ public class BookServiceImpl implements BookService {
 
             bookRepository.save(book);
 
-            return new ResponseData<>(200, "Book uploaded successfully",BookResponse.from(book, bookRepository));
+            return new ResponseData<>(200, "Book uploaded successfully", BookResponse.from(book, bookRepository));
 
         } catch (IOException e) {
             return new ResponseData<>(500, "Failed to upload PDF file", null);
@@ -161,7 +180,7 @@ public class BookServiceImpl implements BookService {
 
             // Kiểm tra trạng thái VIP (phải là ACTIVE)
             if (vipMembership.getVipStatusEnum() != VipStatusEnum.ACTIVE) {
-                throw new UserNotRegisteredVip("VIP membership is not active");
+                throw new VipExpired("VIP membership is expired. Please renewal vip membership");
             }
         }
 
@@ -182,17 +201,56 @@ public class BookServiceImpl implements BookService {
         return new InputStreamResource(new FileInputStream(pdfFile));
     }
 
-
     @Override
     public ResponseData<Page<BookResponse>> getBooks(int page, int size) {
-        Pageable pageable = PageRequest.of(page,size);
+        Pageable pageable = PageRequest.of(page, size);
 
         Page<Book> books = bookRepository.findAll(pageable);
-        if (books.isEmpty()){
+        if (books.isEmpty()) {
             throw new BookNotFoundException("Book not found");
         }
 
         Page<BookResponse> bookResponses = books.map(book -> BookResponse.from(book, bookRepository));
         return new ResponseData<>(200, "Books found", bookResponses);
+    }
+
+    @Override
+    public ResponseData<String> addBookFavorite(Long bookId) {
+        User user = userService.getUserBySecurity();
+        Book book = bookRepository.findById(bookId)
+                .orElseThrow(() -> new RuntimeException("Book not found"));
+        if (!user.getFavoriteBooks().contains(book)) {
+            user.getFavoriteBooks().add(book);
+            userRepository.save(user);
+        }
+        return new ResponseData<>(200, "add successfully");
+    }
+
+    @Override
+    public ResponseData<String> removeBookFavorite(Long bookId) {
+        User user = userService.getUserBySecurity();
+        Book book = bookRepository.findById(bookId)
+                .orElseThrow(() -> new RuntimeException("Book not found"));
+        if (user.getFavoriteBooks().contains(book)) {
+            user.getFavoriteBooks().remove(book);
+            userRepository.save(user);
+        }
+        return new ResponseData<>(200, "remove successfully");
+    }
+
+    @Override
+    public ResponseData<List<BookResponse>> getFavoriteBooks() {
+        User user = userService.getUserBySecurity();
+        List<Book> favoriteBooks = user.getFavoriteBooks();
+
+        if (favoriteBooks.isEmpty()) {
+            return new ResponseData<>(200, "No favorite books found", null);
+        }
+
+        List<BookResponse> data = favoriteBooks.stream()
+                .map(book -> BookResponse.from(book, bookRepository))
+                .toList();
+
+        return new ResponseData<>(200, "Get success", data);
     }
 }

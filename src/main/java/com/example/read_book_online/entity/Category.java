@@ -18,7 +18,7 @@ public class Category {
 
     private String categoryName;
 
-    // Một Category có thể có nhiều Books
-    @OneToMany(mappedBy = "category", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @ManyToMany(mappedBy = "categories")
     private List<Book> books;
 }
+

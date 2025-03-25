@@ -7,6 +7,7 @@ import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Page;
 
 import java.io.FileNotFoundException;
+import java.util.List;
 
 public interface BookService {
     ResponseData<BookResponse> addBook(BookRequest bookRequest);
@@ -14,4 +15,7 @@ public interface BookService {
     ResponseData<BookResponse> likeBook(Long bookId);
     ResponseData<Page<BookResponse>> getBooks(int page, int size);
     Resource getBookPDF(Long bookId) throws FileNotFoundException;
+    ResponseData<String> addBookFavorite(Long bookId);
+    ResponseData<String> removeBookFavorite(Long bookId);
+    ResponseData<List<BookResponse>> getFavoriteBooks ();
 }

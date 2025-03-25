@@ -1,9 +1,12 @@
 package com.example.read_book_online.controller;
 
 import com.example.read_book_online.dto.request.BookRequest;
+import com.example.read_book_online.dto.request.BookmarkRequest;
 import com.example.read_book_online.dto.response.BookResponse;
+import com.example.read_book_online.dto.response.BookmarkResponse;
 import com.example.read_book_online.dto.response.ResponseData;
 import com.example.read_book_online.service.BookService;
+import com.example.read_book_online.service.BookmarkService;
 import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.core.io.Resource;
 
@@ -16,6 +19,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.FileNotFoundException;
+import java.util.List;
 
 
 @RestController
@@ -23,6 +27,8 @@ import java.io.FileNotFoundException;
 public class BookController {
     @Autowired
     private BookService bookService;
+    @Autowired
+    private BookmarkService bookmarkService;
 
     @Operation(summary = "Admin add new book", description = "API cho admin them mot quyen sach moi")
     @PostMapping("")
@@ -60,6 +66,36 @@ public class BookController {
 
         ResponseData<Page<BookResponse>> result = bookService.getBooks(page, size);
         return ResponseEntity.status(HttpStatus.OK).body(result);
+    }
+
+    @PostMapping("/favorite/add/{id}")
+    public  ResponseEntity<ResponseData<String>> addFavouriteBook (@PathVariable("id") Long id) {
+        return ResponseEntity.ok(bookService.addBookFavorite(id));
+    }
+
+    @PostMapping("/favorite/remove/{id}")
+    public ResponseEntity<ResponseData<String>> RemoveFavouriteBook (@PathVariable("id") Long id) {
+        return ResponseEntity.ok(bookService.removeBookFavorite(id));
+    }
+
+    @GetMapping("/favorite")
+    public ResponseEntity<ResponseData<List<BookResponse>>> getMyFavouriteBooks() {
+        return ResponseEntity.ok(bookService.getFavoriteBooks());
+    }
+
+    @PostMapping("/bookmark/add")
+    public ResponseEntity<ResponseData<BookmarkResponse>> bookmarkBook(@RequestBody BookmarkRequest bookmarkRequest) {
+        return ResponseEntity.ok(bookmarkService.addBookmark(bookmarkRequest));
+    }
+
+    @DeleteMapping("/bookmark/remove/{id}")
+    public ResponseEntity<ResponseData<String>> deleteBookmarkBook(@PathVariable("id") Long id) {
+        return ResponseEntity.ok(bookmarkService.deleteBookmark(id));
+    }
+
+    @GetMapping("bookmark/me")
+    public ResponseEntity<ResponseData<List<BookmarkResponse>>> getMyBookmarks() {
+        return ResponseEntity.ok(bookmarkService.getMyBookmarks());
     }
 
 }

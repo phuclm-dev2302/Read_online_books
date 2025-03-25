@@ -17,7 +17,7 @@ public interface VipMembershipService {
     //Đăng kí vip
     ResponseData<VipMembershipResponse> registerVip(int time);
     // gia hạn vip
-    ResponseData<VipMembershipResponse> renewalVip(RenewalRequest renewalRequest);
+    ResponseData<VipMembershipResponse> renewalVip(int time);
     // xem thời gian vip
     ResponseData<VipMembershipResponse> getVip();
 

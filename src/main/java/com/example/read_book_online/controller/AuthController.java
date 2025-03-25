@@ -29,6 +29,13 @@ public class AuthController {
     @Autowired
     private AuthService authService;
 
+    @Operation(summary = "User login", description = "Authenticate user and return JWT token")
+    @PostMapping("/login")
+    public ResponseEntity<ResponseData<AuthResponse>> signIn(@RequestBody SignInRequest signInForm) {
+        ResponseData<AuthResponse> response = authService.login(signInForm);
+        return ResponseEntity.status(response.getStatus()).body(response);
+    }
+
     @GetMapping("/login/oauth2/google-redirect")
     public ResponseData<AuthResponse> googleRedirect() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();

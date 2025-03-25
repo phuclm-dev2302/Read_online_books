@@ -8,6 +8,8 @@ import lombok.Builder;
 import lombok.Data;
 import org.hibernate.boot.archive.scan.spi.ClassDescriptor;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Builder
@@ -21,6 +23,8 @@ public class BookResponse {
 
     private String authorName;
 
+    private LocalDate createdAt;
+
     private String pdfFilePath;
 
     private Long totalViews;
@@ -32,6 +36,7 @@ public class BookResponse {
                 .bookId(book.getBookId())
                 .authorName(book.getAuthor().getAuthorName())
                 .title(book.getTitle())
+                .createdAt(book.getCreateDate())
                 .categories(book.getCategories().stream().map(Category::getCategoryName).toList())
                 .pdfFilePath(book.getPdfFilePath())
                 .totalLikes(bookRepository.countLikesByBookId(book.getBookId()))

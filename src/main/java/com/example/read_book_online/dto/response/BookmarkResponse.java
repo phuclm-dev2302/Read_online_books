@@ -8,6 +8,7 @@ import com.example.read_book_online.repository.BookRepository;
 import lombok.Builder;
 import lombok.Data;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @Builder
@@ -23,6 +24,8 @@ public class BookmarkResponse {
 
     private String authorName;
 
+    private LocalDate createdAt;
+
     private String pdfFilePath;
 
     private Long totalViews;
@@ -37,6 +40,7 @@ public class BookmarkResponse {
                 .bookId(bookmark.getBook().getBookId())
                 .authorName(bookmark.getBook().getAuthor().getAuthorName())
                 .title(bookmark.getBook().getTitle())
+                .createdAt(bookmark.getBook().getCreateDate())
                 .categories(bookmark.getBook().getCategories().stream().map(Category::getCategoryName).toList())
                 .pdfFilePath(bookmark.getBook().getPdfFilePath())
                 .totalLikes(bookRepository.countLikesByBookId(bookmark.getBook().getBookId()))

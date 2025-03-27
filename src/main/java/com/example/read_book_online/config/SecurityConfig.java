@@ -62,14 +62,10 @@ public class SecurityConfig {
                         .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
                         .anyRequest().authenticated()
                 )
-//                .oauth2Login(oauth2 -> oauth2
-//                        .defaultSuccessUrl("/api/v1/auth/login/oauth2/google-redirect", true)
-//                )
+
                 .oauth2Login(oauth2 -> oauth2
-//                        .redirectionEndpoint(redirection -> redirection
-//                                .baseUri("/login/oauth2/code/google")
-//                        )
-                                .successHandler(loginSuccessHandler)
+                        .loginPage("/login")
+                        .successHandler(loginSuccessHandler)
                 )
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)

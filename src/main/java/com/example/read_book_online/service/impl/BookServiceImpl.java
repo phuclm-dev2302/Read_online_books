@@ -73,6 +73,25 @@ public class BookServiceImpl implements BookService {
                 throw new RuntimeException("Category IDs not found: " + missingIds);
             }
 
+            // theem ảnh cho sách
+            String uploadedImagePath = null;
+            if (bookRequest.getImage() != null && !bookRequest.getImage().isEmpty()) {
+                Path uploadPath = Paths.get(System.getProperty("user.dir"), "uploads/bookImage");
+
+                if (!Files.exists(uploadPath)) {
+                    Files.createDirectories(uploadPath);
+                }
+
+                String fileName = System.currentTimeMillis() + "_" + bookRequest.getImage().getOriginalFilename();
+                Path filePath = uploadPath.resolve(fileName);
+                bookRequest.getImage().transferTo(filePath.toFile());
+
+                // Đường dẫn để lưu vào database
+                uploadedImagePath = "/uploads/bookImage/" + fileName;
+            } else {
+                log.warn("No image provided in the form.");
+            }
+
             Author author = authorRepository.findById(bookRequest.getAuthorId())
                     .orElseThrow(() -> new RuntimeException("Author not found"));
 
@@ -97,6 +116,7 @@ public class BookServiceImpl implements BookService {
                     .title(bookRequest.getTitle())
                     .author(author)
                     .categories(categories)
+                    .image(uploadedImagePath)
                     .pdfFilePath(filePath)
                     .createDate(LocalDate.now())
                     .isVip(bookRequest.getIsVip())

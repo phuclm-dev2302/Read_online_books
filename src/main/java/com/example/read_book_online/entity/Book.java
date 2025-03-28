@@ -25,6 +25,8 @@ public class Book {
     )
     private List<Category> categories;
 
+    private String image;
+
     @ManyToOne
     @JoinColumn(name = "author_id", nullable = false)
     private Author author;

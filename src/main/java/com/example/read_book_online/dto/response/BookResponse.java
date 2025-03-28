@@ -23,6 +23,8 @@ public class BookResponse {
 
     private String authorName;
 
+    private String imagePath;
+
     private LocalDate createdAt;
 
     private String pdfFilePath;
@@ -36,6 +38,7 @@ public class BookResponse {
                 .bookId(book.getBookId())
                 .authorName(book.getAuthor().getAuthorName())
                 .title(book.getTitle())
+                .imagePath(book.getImage())
                 .createdAt(book.getCreateDate())
                 .categories(book.getCategories().stream().map(Category::getCategoryName).toList())
                 .pdfFilePath(book.getPdfFilePath())

@@ -24,6 +24,8 @@ public class BookmarkResponse {
 
     private String authorName;
 
+    private String imagePath;
+
     private LocalDate createdAt;
 
     private String pdfFilePath;
@@ -39,6 +41,7 @@ public class BookmarkResponse {
                 .bookmarkId(bookmark.getId())
                 .bookId(bookmark.getBook().getBookId())
                 .authorName(bookmark.getBook().getAuthor().getAuthorName())
+                .imagePath(bookmark.getBook().getImage())
                 .title(bookmark.getBook().getTitle())
                 .createdAt(bookmark.getBook().getCreateDate())
                 .categories(bookmark.getBook().getCategories().stream().map(Category::getCategoryName).toList())

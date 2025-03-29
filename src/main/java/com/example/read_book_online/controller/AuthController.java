@@ -35,20 +35,6 @@ public class AuthController {
         ResponseData<AuthResponse> response = authService.login(signInForm);
         return ResponseEntity.status(response.getStatus()).body(response);
     }
-    @Operation(summary = "User login with google account", description = "Authenticate user by google account")
-    @GetMapping("/login/oauth2/google-redirect")
-    public ResponseData<AuthResponse> googleRedirect() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-
-        if (!(authentication instanceof OAuth2AuthenticationToken)) {
-            throw new IllegalStateException("User not authenticated via OAuth2");
-        }
-
-        OAuth2AuthenticationToken authenticationToken = (OAuth2AuthenticationToken) authentication;
-        AuthResponse authResponse = authService.handleGoogleRedirect(authenticationToken);
-
-        return new ResponseData<>(HttpStatus.OK.value(), "Login successful", authResponse);
-    }
 
     @Operation(summary = "User registration", description = "Register a new user account")
     @PostMapping("/register")

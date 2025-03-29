@@ -78,7 +78,6 @@ public class UserServiceImpl implements UserService {
     public ResponseData<UserResponse> updateInfo(UserRequest userRequest) {
         User user = getUserBySecurity();
 
-        user.setEmail(userRequest.getEmail());
         user.setUsername(userRequest.getUserName());
         user.setDob(userRequest.getDob());
         user.setPhoneNumber(userRequest.getPhoneNumber());

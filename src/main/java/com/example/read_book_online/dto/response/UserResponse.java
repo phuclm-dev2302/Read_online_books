@@ -1,6 +1,8 @@
 package com.example.read_book_online.dto.response;
 
 import com.example.read_book_online.entity.User;
+import com.fasterxml.jackson.annotation.JsonFormat;
+import jakarta.validation.constraints.Pattern;
 import lombok.Builder;
 import lombok.Data;
 
@@ -17,6 +19,7 @@ public class UserResponse {
 
     private String phoneNumber;
 
+    @JsonFormat(pattern = "dd-MM-yyyy")
     private LocalDate dob;
 
     private LocalDate createdDate;

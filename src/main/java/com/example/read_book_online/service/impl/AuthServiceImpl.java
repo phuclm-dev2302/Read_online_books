@@ -55,64 +55,16 @@ public class AuthServiceImpl implements AuthService {
     private RestTemplate restTemplate;
 
     @Override
-    public AuthResponse handleGoogleRedirect(OAuth2AuthenticationToken authenticationToken) {
-//        OAuth2AuthenticationToken authenticationToken =
-//                (OAuth2AuthenticationToken) SecurityContextHolder.getContext().getAuthentication();
-//
-//        if (authenticationToken == null) {
-//            throw new RuntimeException("Authentication Token is null");
-//        }
-
-        OAuth2User oAuth2User = authenticationToken.getPrincipal();
-        String email = oAuth2User.getAttribute("email");
-        String name = oAuth2User.getAttribute("name");
-
-        // Kiểm tra xem người dùng đã tồn tại trong cơ sở dữ liệu chưa
-        Optional<User> existingUser = userRepository.findByEmail(email);
-
-        User user;
-        if (existingUser.isPresent()) {
-            user = existingUser.get();
-        } else {
-            // Nếu người dùng chưa tồn tại, tạo người dùng mới
-            user = new User();
-            user.setEmail(email);
-            user.setUsername(name);
-            user.setStatus(StatusEnum.ACTIVE);
-            userRepository.save(user);
+    public ResponseData<String> forgotPassword(String email) {
+        if (!userRepository.existsByEmail(email)) {
+            return new ResponseError<>(400, "Email is not exist");
         }
 
-        // Xác thực người dùng và tạo JWT token
-        String token = jwtProvider.generateToken(
-                new UsernamePasswordAuthenticationToken(user.getEmail(), null, Collections.emptyList()));
-        return new AuthResponse(user.getUserId(), token, user.getUsername());
+        String otpCode = String.format("%06d", new Random().nextInt(999999));
+        kafkaTemplate.send("forgot-account-topic", email, otpCode);
+        log.info("User {} send forgot password successfully, pls check email to confirm OTP. Thanks!", email, otpCode);
+        return new ResponseData<>(200, "User get OTP success, pls check email to confirm OTP!");
     }
-
-
-    @Override
-    public ResponseData<AuthResponse> login(SignInRequest form) {
-        User user = userRepository.findByEmail(form.getEmail())
-                .orElseThrow(() -> new IllegalArgumentException("User not found with email: " + form.getEmail()));
-
-        if (!user.getStatus().equals(StatusEnum.ACTIVE)) {
-            throw new IllegalArgumentException("Account is not active");
-        }
-
-        Authentication authentication;
-        try {
-            authentication = authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(form.getEmail(), form.getPassword())
-            );
-        } catch (AuthenticationException e) {
-            log.error("Authentication failed for email: {} with exception: {}", form.getEmail(), e.getMessage());
-            throw new IllegalArgumentException("Invalid email or password");
-        }
-        String accessToken = jwtProvider.generateToken(authentication);
-        log.info("User {} logged in successfully with ", user.getEmail());
-
-        return new ResponseData<>(200,"login success", AuthResponse.from(user,accessToken));
-    }
-
 
     @Override
     public ResponseData<String> register(SignUpRequest form) {
@@ -142,6 +94,29 @@ public class AuthServiceImpl implements AuthService {
         return new ResponseData<>(200, "Success register new user. Please check your email for confirmation", "Id: " + user.getUserId());
     }
 
+    @Override
+    public ResponseData<AuthResponse> login(SignInRequest form) {
+        User user = userRepository.findByEmail(form.getEmail())
+                .orElseThrow(() -> new IllegalArgumentException("User not found with email: " + form.getEmail()));
+
+        if (!user.getStatus().equals(StatusEnum.ACTIVE)) {
+            throw new IllegalArgumentException("Account is not active");
+        }
+
+        Authentication authentication;
+        try {
+            authentication = authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(form.getEmail(), form.getPassword())
+            );
+        } catch (AuthenticationException e) {
+            log.error("Authentication failed for email: {} with exception: {}", form.getEmail(), e.getMessage());
+            throw new IllegalArgumentException("Invalid email or password");
+        }
+        String accessToken = jwtProvider.generateToken(authentication);
+        log.info("User {} logged in successfully with ", user.getEmail());
+
+        return new ResponseData<>(200,"login success", AuthResponse.from(user,accessToken));
+    }
 
     @Override
     public ResponseData<String> confirmUser(long userId, String otpCode) {

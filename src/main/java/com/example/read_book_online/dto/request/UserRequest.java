@@ -19,10 +19,6 @@ public class UserRequest {
     @Size(min = 3, max = 50, message = "Username must be between 3 and 50 characters")
     private String userName;
 
-    @NotBlank(message = "Email cannot be empty")
-    @Email(message = "Invalid email format")
-    private String email;
-
     @NotBlank(message = "Phone number cannot be empty")
     @Pattern(regexp = "^(0|\\+84)[0-9]{9,10}$", message = "Invalid phone number format")
     private String phoneNumber;

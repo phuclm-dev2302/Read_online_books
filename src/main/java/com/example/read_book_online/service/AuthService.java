@@ -19,6 +19,6 @@ public interface AuthService {
 
     ResponseData<String> confirmUser(long userId, String otpCode);
 
-    //ResponseData<AuthResponse> loginWithGoogle(String accessToken);
-    AuthResponse handleGoogleRedirect(OAuth2AuthenticationToken authenticationToken);
+    ResponseData<String> forgotPassword(String email);
+
 }

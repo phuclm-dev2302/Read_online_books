@@ -101,10 +101,20 @@ public class BookController {
     public ResponseEntity<ResponseData<List<BookmarkResponse>>> getMyBookmarks() {
         return ResponseEntity.ok(bookmarkService.getMyBookmarks());
     }
+
+    @Operation(summary = "User get top interact book", description = "API cho người dùng xem sách nổi bật")
+    @GetMapping("/top-interact")
+    public ResponseEntity<ResponseData<List<BookResponse>>> getTopBooks(){
+        return ResponseEntity.ok(bookService.getTopBooks());
+    }
+
+    @Operation(summary = "User get lasted book", description = "API cho người dùng xem sách mới nhất")
     @GetMapping("/latest")
     public ResponseEntity<ResponseData<List<BookResponse>>> getLatestBooks() {
         return ResponseEntity.ok(bookService.getLatestBooks());
     }
+
+    @Operation(summary = "User get book suggested ", description = "API hiển thị sách được gợi ý")
     @GetMapping("/suggested")
     public ResponseEntity<ResponseData<List<BookResponse>>> getSuggestedBooks() {
         return ResponseEntity.ok(bookService.getSuggestedBooks());

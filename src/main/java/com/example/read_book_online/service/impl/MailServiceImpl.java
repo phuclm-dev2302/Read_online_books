@@ -67,6 +67,11 @@
 //        log.info("Confirmation email sent to user at email={}, with OTP code={}", emailTo, otpCode);
 //    }
 //
+//    @Override
+//    @KafkaListener(topics = "forgot-account-topic", groupId = "Confirm-OTP-resPassword")
+//    public void sendConfirmResPassByKafka(String message) throws MessagingException, UnsupportedEncodingException {
+//
+//    }
 //}
 //
 //

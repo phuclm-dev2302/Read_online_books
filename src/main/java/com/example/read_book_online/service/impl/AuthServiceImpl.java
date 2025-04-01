@@ -13,6 +13,7 @@ import com.example.read_book_online.repository.RoleRepository;
 import com.example.read_book_online.repository.UserRepository;
 import com.example.read_book_online.service.AuthService;
 import com.example.read_book_online.service.BlacklistTokenService;
+import com.example.read_book_online.service.UserService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
@@ -53,6 +54,9 @@ public class AuthServiceImpl implements AuthService {
     private KafkaTemplate<String, String> kafkaTemplate;
     @Autowired
     private RestTemplate restTemplate;
+    @Autowired
+    private UserService userService;
+
 
     @Override
     public ResponseData<String> forgotPassword(String email) {
@@ -64,6 +68,19 @@ public class AuthServiceImpl implements AuthService {
         kafkaTemplate.send("forgot-account-topic", email, otpCode);
         log.info("User {} send forgot password successfully, pls check email to confirm OTP. Thanks!", email, otpCode);
         return new ResponseData<>(200, "User get OTP success, pls check email to confirm OTP!");
+    }
+
+    @Override
+    public ResponseData<String> confirmOtpRestPassword(long userId, String otpCode) {
+        User user = userService.getUserBySecurity();
+
+        if (!otpCode.equals(user.getOtp())) {
+            return new ResponseError<>(400, "OTP is not match");
+        }
+
+        user.setOtp(null);
+        return new ResponseData<>(200,"OTP is match",null);
+
     }
 
     @Override

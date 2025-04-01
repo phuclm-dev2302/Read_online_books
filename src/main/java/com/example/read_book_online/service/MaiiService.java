@@ -6,4 +6,5 @@ import java.io.UnsupportedEncodingException;
 
 public interface MaiiService {
     void sendConfirmLinkByKafka(String message) throws MessagingException, UnsupportedEncodingException;
+    void sendConfirmResPassByKafka(String message) throws MessagingException, UnsupportedEncodingException;
 }

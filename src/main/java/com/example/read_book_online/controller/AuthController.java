@@ -1,5 +1,6 @@
 package com.example.read_book_online.controller;
 
+import com.example.read_book_online.dto.request.ForgotRequest;
 import com.example.read_book_online.dto.request.OtpRequest;
 import com.example.read_book_online.dto.request.SignInRequest;
 import com.example.read_book_online.dto.request.SignUpRequest;
@@ -40,6 +41,12 @@ public class AuthController {
     @PostMapping("/register")
     public ResponseEntity<ResponseData<String>> register(@Valid @RequestBody SignUpRequest form) {
         ResponseData<String> response = authService.register(form);
+        return ResponseEntity.status(response.getStatus()).body(response);
+    }
+
+    @PostMapping("/forgot")
+    public ResponseEntity<ResponseData<String>> forgot(@RequestBody ForgotRequest forgotRequest) {
+        ResponseData<String> response = authService.forgotPassword(forgotRequest.getEmail());
         return ResponseEntity.status(response.getStatus()).body(response);
     }
 

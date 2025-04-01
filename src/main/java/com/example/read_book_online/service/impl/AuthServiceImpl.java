@@ -1,5 +1,6 @@
 package com.example.read_book_online.service.impl;
 
+import com.example.read_book_online.config.exception.UserNotFoundException;
 import com.example.read_book_online.dto.request.SignInRequest;
 import com.example.read_book_online.dto.request.SignUpRequest;
 import com.example.read_book_online.dto.response.AuthResponse;
@@ -63,16 +64,21 @@ public class AuthServiceImpl implements AuthService {
         if (!userRepository.existsByEmail(email)) {
             return new ResponseError<>(400, "Email is not exist");
         }
+        User user = userRepository.findByEmail(email).orElseThrow(() -> new UserNotFoundException("User not found"));
 
         String otpCode = String.format("%06d", new Random().nextInt(999999));
+        user.setOtp(otpCode);// gan otp
+        userRepository.save(user);
+
         kafkaTemplate.send("forgot-account-topic", email, otpCode);
-        log.info("User {} send forgot password successfully, pls check email to confirm OTP. Thanks!", email, otpCode);
+        log.info("User {} send forgot password successfully, pls check email to confirm OTP. Thanks!",
+                String.format("email=%s,id=%s,otpCode=%s", user.getEmail(), user.getUserId(), otpCode));
         return new ResponseData<>(200, "User get OTP success, pls check email to confirm OTP!");
     }
 
     @Override
     public ResponseData<String> confirmOtpRestPassword(long userId, String otpCode) {
-        User user = userService.getUserBySecurity();
+        User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException("User not found"));
 
         if (!otpCode.equals(user.getOtp())) {
             return new ResponseError<>(400, "OTP is not match");

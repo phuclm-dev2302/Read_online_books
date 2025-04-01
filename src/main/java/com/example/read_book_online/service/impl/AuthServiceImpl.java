@@ -70,9 +70,10 @@ public class AuthServiceImpl implements AuthService {
         user.setOtp(otpCode);// gan otp
         userRepository.save(user);
 
-        kafkaTemplate.send("forgot-account-topic", email, otpCode);
         log.info("User {} send forgot password successfully, pls check email to confirm OTP. Thanks!",
                 String.format("email=%s,id=%s,otpCode=%s", user.getEmail(), user.getUserId(), otpCode));
+        kafkaTemplate.send("forgot-account-topic", String.format("email=%s,id=%s,otpCode=%s", user.getEmail(), user.getUserId(), otpCode));
+
         return new ResponseData<>(200, "User get OTP success, pls check email to confirm OTP!");
     }
 
@@ -83,9 +84,11 @@ public class AuthServiceImpl implements AuthService {
         if (!otpCode.equals(user.getOtp())) {
             return new ResponseError<>(400, "OTP is not match");
         }
-
+        String password = UUID.randomUUID().toString().substring(0, 8);
+        user.setPassword(passwordEncoder.encode(password));
         user.setOtp(null);
-        return new ResponseData<>(200,"OTP is match",null);
+        userRepository.save(user);
+        return new ResponseData<>(200,"OTP is match",password);
 
     }
 

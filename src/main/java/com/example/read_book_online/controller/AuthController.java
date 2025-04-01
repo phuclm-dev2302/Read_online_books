@@ -50,6 +50,12 @@ public class AuthController {
         return ResponseEntity.status(response.getStatus()).body(response);
     }
 
+    @PostMapping("/confirm-forgot/{id}")
+    public ResponseEntity<ResponseData<String>> confirmForgot(@PathVariable("id") Long id, @RequestBody OtpRequest otpRequest) {
+        log.info("Confirm user, userId={}, otpCode={}", id, otpRequest.getOtpCode());
+        return ResponseEntity.status(HttpStatus.OK).body(authService.confirmOtpRestPassword(id, otpRequest.getOtpCode()));
+    }
+
     @Operation(summary = "Confirm user account", description = "Verify OTP and activate the user account")
     @PostMapping("/confirm/{userId}")
     public ResponseEntity<ResponseData<String>> confirm(@PathVariable Long userId, @RequestBody OtpRequest form) {

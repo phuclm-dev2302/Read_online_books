@@ -70,7 +70,7 @@ public class MailServiceImpl implements MaiiService {
     @Override
     @KafkaListener(topics = "forgot-account-topic", groupId = "Confirm-OTP-resPassword")
     public void sendConfirmResPassByKafka(String message) throws MessagingException, UnsupportedEncodingException {
-        log.info("Processing Kafka message for account confirmation: {}", message);
+        log.info("Processing Kafka message for forgot password: {}", message);
 
         String[] arr = message.split(",");
         String emailTo = arr[0].substring(arr[0].indexOf('=') + 1);
@@ -95,6 +95,36 @@ public class MailServiceImpl implements MaiiService {
         // Send email and log the result
         mailSender.send(mimeMessage);
         log.info("Confirmation email sent to user at email={}, with OTP code={}", emailTo, otpCode);
+    }
+
+    @Override
+    @KafkaListener(topics = "review-password-topic", groupId = "New password")
+    public void sendReviewPassByKafka(String message) throws MessagingException, UnsupportedEncodingException {
+        log.info("Processing Kafka message for new password: {}", message);
+
+        String[] arr = message.split(",");
+        String emailTo = arr[0].substring(arr[0].indexOf('=') + 1);
+        String userId = arr[1].substring(arr[1].indexOf('=') + 1);
+        String password = arr[2].substring(arr[2].indexOf('=') + 1);
+
+
+        // Set up email content and properties
+        MimeMessage mimeMessage = mailSender.createMimeMessage();
+        MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, MimeMessageHelper.MULTIPART_MODE_MIXED_RELATED, StandardCharsets.UTF_8.name());
+        Context context = new Context();
+        Map<String, Object> properties = new HashMap<>();
+        properties.put("password", password);
+        context.setVariables(properties);
+
+        helper.setFrom(emailFrom, "Lê Minh Phúc CN22G");
+        helper.setTo(emailTo);
+        helper.setSubject("Your OTP Code is: ");
+        String html = templateEngine.process("new-password.html", context);
+        helper.setText(html, true);
+
+        // Send email and log the result
+        mailSender.send(mimeMessage);
+        log.info("Confirmation email sent to user at email={}, with OTP code={}", emailTo, password);
     }
 }
 

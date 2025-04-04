@@ -8,6 +8,7 @@ import com.example.read_book_online.dto.response.UserResponse;
 import com.example.read_book_online.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Pattern;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,7 +42,7 @@ public class UserController {
         return ResponseEntity.status(result.getStatus()).body(result);
     }
     @Operation(summary = "change the password", description = "API de nguoi dung doi mat khau")
-    @PutMapping("/change-password")
+    @PatchMapping("/change-password")
     public ResponseEntity<ResponseData<String>> changePassword(@RequestBody @Valid ChangePasswordRequest changePasswordRequest){{
         return ResponseEntity.ok(userService.changePassword(changePasswordRequest));}
     }

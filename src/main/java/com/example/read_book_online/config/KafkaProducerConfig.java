@@ -43,4 +43,8 @@ public class KafkaProducerConfig {
     public NewTopic forgotAccount(){
         return new NewTopic("forgot-account-topic", 3, (short) 1);
     }
+
+    public NewTopic reviewPassword(){
+        return new NewTopic("review-password-topic", 3, (short) 1);
+    }
 }

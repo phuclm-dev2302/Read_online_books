@@ -84,12 +84,16 @@ public class AuthServiceImpl implements AuthService {
         if (!otpCode.equals(user.getOtp())) {
             return new ResponseError<>(400, "OTP is not match");
         }
-        String password = UUID.randomUUID().toString().substring(0, 8);
-        user.setPassword(passwordEncoder.encode(password));
+        String newPassword = UUID.randomUUID().toString().substring(0, 8);
+        user.setPassword(passwordEncoder.encode(newPassword));
         user.setOtp(null);
         userRepository.save(user);
-        return new ResponseData<>(200,"OTP is match",password);
 
+        // gui den kafka xu li cap mat khau moi bang mail service
+        log.info("User {} send new password successfully, pls check email to change password. Thanks!",
+                String.format("email=%s,id=%s,newPassword=%s", user.getEmail(), user.getUserId(), newPassword));
+        kafkaTemplate.send("review-password-topic", String.format("email=%s,id=%s,newPassword=%s", user.getEmail(), user.getUserId(), newPassword));
+        return new ResponseData<>(200,"OTP is match,Password has been sent to email. ",newPassword);
     }
 
     @Override

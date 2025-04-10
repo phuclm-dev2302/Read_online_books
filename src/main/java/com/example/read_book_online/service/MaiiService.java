@@ -8,4 +8,5 @@ public interface MaiiService {
     void sendConfirmLinkByKafka(String message) throws MessagingException, UnsupportedEncodingException;
     void sendConfirmResPassByKafka(String message) throws MessagingException, UnsupportedEncodingException;
     void sendReviewPassByKafka(String message) throws MessagingException, UnsupportedEncodingException;
+    void sendBanAccountByKafka(String email) throws MessagingException, UnsupportedEncodingException;
 }

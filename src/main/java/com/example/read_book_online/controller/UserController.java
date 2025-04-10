@@ -5,6 +5,7 @@ import com.example.read_book_online.dto.request.ChangePasswordRequest;
 import com.example.read_book_online.dto.request.UserRequest;
 import com.example.read_book_online.dto.response.ResponseData;
 import com.example.read_book_online.dto.response.UserResponse;
+import com.example.read_book_online.entity.User;
 import com.example.read_book_online.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
@@ -45,5 +46,10 @@ public class UserController {
     @PatchMapping("/change-password")
     public ResponseEntity<ResponseData<String>> changePassword(@RequestBody @Valid ChangePasswordRequest changePasswordRequest){{
         return ResponseEntity.ok(userService.changePassword(changePasswordRequest));}
+    }
+
+    @PostMapping("/ban/{id}")
+    public ResponseEntity<ResponseData<UserResponse>> banUser(@PathVariable Long id){
+        return ResponseEntity.ok(userService.banUser(id));
     }
 }

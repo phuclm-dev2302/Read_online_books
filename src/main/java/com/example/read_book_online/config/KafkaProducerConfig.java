@@ -44,6 +44,12 @@ public class KafkaProducerConfig {
         return new NewTopic("forgot-account-topic", 3, (short) 1);
     }
 
+    @Bean
+    public NewTopic banAccount(){
+        return new NewTopic("ban-account-topic", 3, (short) 1);
+    }
+
+    @Bean
     public NewTopic reviewPassword(){
         return new NewTopic("review-password-topic", 3, (short) 1);
     }

@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-    <title th:remove="all">Please confirm your account</title>
+    <title th:remove="all">Notify ban account</title>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
     <style>
         body {
@@ -56,12 +56,12 @@
 <body>
 <div class="container">
     <div class="header">
-        <h1>Please confirm your account</h1>
+        <h1>Account has been baned</h1>
     </div>
     <div class="content">
-        <p>Your One-Time Password (OTP) for account confirmation is:</p>
-        <div class="otp" th:text="${otpCode}">123456</div>
-        <p>This OTP will expire in 10 minutes. Please use it to confirm your account.</p>
+        <p>Your Account has been baned</p>
+        <div class="email" th:text="${email}"></div>
+        <p>Please contact to Libro system : 0528661656.</p>
     </div>
     <div class="footer">
         <span>Libro</span>

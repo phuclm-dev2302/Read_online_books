@@ -7,23 +7,29 @@ import com.example.read_book_online.dto.response.ResponseData;
 import com.example.read_book_online.dto.response.ResponseError;
 import com.example.read_book_online.dto.response.UserResponse;
 import com.example.read_book_online.entity.User;
+import com.example.read_book_online.enums.StatusEnum;
 import com.example.read_book_online.repository.UserRepository;
 import com.example.read_book_online.service.UserService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+@Slf4j
 @Service
 public class UserServiceImpl implements UserService {
     @Autowired
     UserRepository userRepository;
     @Autowired
     private PasswordEncoder passwordEncoder;
+    @Autowired
+    private KafkaTemplate kafkaTemplate;
 
     @Override
     public User getUserBySecurity() {
@@ -38,6 +44,21 @@ public class UserServiceImpl implements UserService {
         return user;
     }
 
+    @Override
+    public ResponseData<UserResponse> banUser(Long id){
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new UserNotFoundException("User Not Found"));
+
+        String email = user.getEmail();
+        user.setStatus(StatusEnum.BAN);
+        userRepository.save(user);
+        log.info("kafka send ban-account-topic");
+        kafkaTemplate.send("ban-account-topic", email);
+
+        log.info("User {} has been baned", email);
+        return new ResponseData<>(201, "User has been banned", UserResponse.fromUser(user));
+
+    }
 
     @Override
     public ResponseData<UserResponse> getMe() {

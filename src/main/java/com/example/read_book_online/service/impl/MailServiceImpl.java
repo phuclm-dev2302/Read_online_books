@@ -34,6 +34,32 @@ public class MailServiceImpl implements MaiiService {
     private String apiConfirmUser;
 
     @Override
+    @KafkaListener(topics = "ban-account-topic", groupId = "Ban-account-Group")
+    public void sendBanAccountByKafka(String email) throws MessagingException, UnsupportedEncodingException {
+        log.info("Processing Kafka message for ban account: {}", email);
+
+        String emailTo = email;
+
+        // Set up email content and properties
+        MimeMessage mimeMessage = mailSender.createMimeMessage();
+        MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, MimeMessageHelper.MULTIPART_MODE_MIXED_RELATED, StandardCharsets.UTF_8.name());
+        Context context = new Context();
+        Map<String, Object> properties = new HashMap<>();
+
+        context.setVariables(properties);
+
+        helper.setFrom(emailFrom, "Lê Minh Phúc CN22G");
+        properties.put("email", email);
+        helper.setTo(emailTo);
+        String html = templateEngine.process("ban-account.html", context);
+        helper.setText(html, true);
+
+        // Send email and log the result
+        mailSender.send(mimeMessage);
+        log.info("Account has been baned with email={}", emailTo);
+    }
+
+    @Override
     @KafkaListener(topics = "confirm-account-topic", groupId = "confirm-account-group")
     public void sendConfirmLinkByKafka(String message) throws MessagingException, UnsupportedEncodingException {
         log.info("Processing Kafka message for account confirmation: {}", message);

@@ -9,6 +9,7 @@ import org.springframework.data.domain.Page;
 
 
 public interface UserService {
+    ResponseData<UserResponse> banUser(Long id);
     User getUserBySecurity();
     ResponseData<UserResponse> getMe();
     ResponseData<Page<UserResponse>> getUsers(int page, int size);

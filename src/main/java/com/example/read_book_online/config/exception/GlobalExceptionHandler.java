@@ -70,6 +70,25 @@ public class GlobalExceptionHandler {
         log.error("Author not found: {}", ex.getMessage());
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
     }
+    @ExceptionHandler(OldPasswordNotCorrectException.class)
+    public ResponseEntity<ResponseError<Object>> handleOldPasswordNotCorrect (OldPasswordNotCorrectException ex) {
+        ResponseError<Object> errorResponse = new ResponseError<>(400, ex.getMessage());
+        log.error("Old password not correct: {}", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+    }
+    @ExceptionHandler(NewPasswordNotDuplicated.class)
+    public ResponseEntity<ResponseError<Object>> handleNewPasswordNotDuplicated (NewPasswordNotDuplicated ex) {
+        ResponseError<Object> errorResponse = new ResponseError<>(400, ex.getMessage());
+        log.error("New password not duplicated: {}", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+    }
+    @ExceptionHandler(NewPasswordNotMatch.class)
+    public ResponseEntity<ResponseError<Object>> handleNewPasswordNotMatch(NewPasswordNotMatch ex) {
+        ResponseError<Object> errorResponse = new ResponseError<>(400, ex.getMessage());
+        log.error("New password not match: {}", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+    }
 }
+
 
 

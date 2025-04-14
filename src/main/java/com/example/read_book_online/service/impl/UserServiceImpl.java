@@ -1,5 +1,8 @@
 package com.example.read_book_online.service.impl;
 
+import com.example.read_book_online.config.exception.NewPasswordNotDuplicated;
+import com.example.read_book_online.config.exception.NewPasswordNotMatch;
+import com.example.read_book_online.config.exception.OldPasswordNotCorrectException;
 import com.example.read_book_online.config.exception.UserNotFoundException;
 import com.example.read_book_online.dto.request.ChangePasswordRequest;
 import com.example.read_book_online.dto.request.UserRequest;
@@ -79,15 +82,15 @@ public class UserServiceImpl implements UserService {
         User user = getUserBySecurity();
 
         if (changePasswordRequest.getOldPassword() == null || !passwordEncoder.matches(changePasswordRequest.getOldPassword(), user.getPassword())) {
-            return new ResponseError<>(400, "Old password does not match");
+            throw new OldPasswordNotCorrectException("Old password does not match");
         }
 
         if (changePasswordRequest.getNewPassword() == null || !changePasswordRequest.getNewPassword().equals(changePasswordRequest.getConfirmPassword())) {
-            return new ResponseError<>(400, "New password does not match");
+            throw new NewPasswordNotMatch("New password does not match");
         }
 
         if (passwordEncoder.matches(changePasswordRequest.getNewPassword(), user.getPassword())) {
-            return new ResponseError<>(400, "New password cannot be the same as old password");
+            throw new NewPasswordNotDuplicated("New password cannot be the same as old password");
         }
 
         user.setPassword(passwordEncoder.encode(changePasswordRequest.getNewPassword()));

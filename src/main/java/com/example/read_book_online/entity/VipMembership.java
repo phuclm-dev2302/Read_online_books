@@ -25,6 +25,8 @@ public class VipMembership {
     @JoinColumn(name = "user_id", nullable = false, unique = true)
     private User user;
 
+    private String orderId;
+
     private LocalDate startDate;
 
     private LocalDate endDate;

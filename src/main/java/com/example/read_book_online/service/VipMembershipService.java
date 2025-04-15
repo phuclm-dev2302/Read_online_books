@@ -11,7 +11,7 @@ public interface VipMembershipService {
     // check xem het han chua
     void checkAndUpdateVipStatus(VipMembership vipMembership);
     //Đăng kí vip
-    ResponseData<VipMembershipResponse> registerVip(int time);
+    ResponseData<String> registerVip(int time, String amount);
     // gia hạn vip
     ResponseData<VipMembershipResponse> renewalVip(int time);
     // xem thời gian vip

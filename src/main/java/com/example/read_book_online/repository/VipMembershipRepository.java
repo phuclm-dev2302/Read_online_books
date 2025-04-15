@@ -10,4 +10,5 @@ import java.util.Optional;
 public interface VipMembershipRepository extends JpaRepository<VipMembership, Long> {
 
     Optional<VipMembership> findByUserUserId(Long userId);
+    Optional<VipMembership> findByOrderId(String orderId);
 }

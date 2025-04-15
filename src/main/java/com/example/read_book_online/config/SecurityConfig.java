@@ -43,6 +43,8 @@ public class SecurityConfig {
 
     private static final String[] WHITELISTED_USER = {
             "/oauth2/authorization/google",
+            "/api/v1/ipn",
+            "/api/v1/redirect",
             "/api/v1/auth/**",
             "/api/v1/book/**",
             "/uploads/**",

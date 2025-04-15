@@ -1,5 +1,9 @@
 package com.example.read_book_online.controller;
 
+import com.example.read_book_online.config.exception.VipmemberNotFound;
+import com.example.read_book_online.entity.VipMembership;
+import com.example.read_book_online.enums.VipStatusEnum;
+import com.example.read_book_online.repository.VipMembershipRepository;
 import com.example.read_book_online.service.MomoPaymentService;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,6 +20,8 @@ public class MomoCallbackController {
 
     @Autowired
     private MomoPaymentService momoPaymentService;
+    @Autowired
+    private VipMembershipRepository vipMembershipRepository;
 
     @PostMapping("/ipn")
     public ResponseEntity<Map<String, Object>> momoIPN(@RequestBody String body) {
@@ -32,6 +38,9 @@ public class MomoCallbackController {
 
         if (resultCode == 0) {
             System.out.println("Transaction successful. Order ID: " + orderId);
+            VipMembership vipMembership= vipMembershipRepository.findByOrderId(orderId)
+                    .orElseThrow(() -> new VipmemberNotFound("vip not found"));
+            vipMembership.setVipStatusEnum(VipStatusEnum.ACTIVE);
         } else {
             System.out.println("Transaction failed. Order ID: " + orderId + " with resultCode: " + resultCode + ", message: " + message);
         }

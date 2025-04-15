@@ -74,7 +74,7 @@ public class AuthServiceImpl implements AuthService {
                 String.format("email=%s,id=%s,otpCode=%s", user.getEmail(), user.getUserId(), otpCode));
         kafkaTemplate.send("forgot-account-topic", String.format("email=%s,id=%s,otpCode=%s", user.getEmail(), user.getUserId(), otpCode));
 
-        return new ResponseData<>(200, "User get OTP success, pls check email to confirm OTP!");
+        return new ResponseData<>(200, "User get OTP success, pls check email to confirm OTP!","Id: " + user.getUserId());
     }
 
     @Override

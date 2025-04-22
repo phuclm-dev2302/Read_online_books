@@ -91,7 +91,7 @@ public class MomoPaymentServiceImpl implements MomoPaymentService {
         body.put("requestId", requestId);
         body.put("amount", amount);
         body.put("orderId", orderId);
-        body.put("orderInfo", "Youmed Shop");
+        body.put("orderInfo", "Libro");
         body.put("redirectUrl", REDIRECT_URL);
         body.put("ipnUrl", IPN_URL);
         body.put("extraData", "");

@@ -8,6 +8,9 @@ RUN mvn clean package -DskipTests
 FROM eclipse-temurin:17
 WORKDIR /app
 
+# Tạo thư mục config nếu chưa có
+RUN mkdir -p /app/config
+
 # Copy JAR file đã build từ stage trước
 COPY --from=build /app/target/read_book_online-0.0.1-SNAPSHOT.jar app.jar
 
@@ -31,7 +34,6 @@ RUN if [ -f /etc/secrets/application.properties ]; then \
 # - application.properties trong JAR (classpath)
 # - application.yml từ file bên ngoài (override nếu cần)
 ENV SPRING_CONFIG_LOCATION=classpath:/,optional:file:/app/config/
-
 
 # Mở port
 EXPOSE 8080

@@ -6,7 +6,7 @@ services:
     startCommand: "java -jar app.jar"
     envVars:
       - key: SPRING_CONFIG_LOCATION
-        value: "classpath:/,optional:file:/app/config/"
+        value: "optional:file:/app/config/"
     secretFiles:
       - path: /etc/secrets/application.yml
         name: application.yml

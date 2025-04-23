@@ -1,20 +1,13 @@
-# Stage 1: Build
-FROM maven:3.9.1-eclipse-temurin-17 AS build
-WORKDIR /app
-COPY . .
-RUN mvn clean package -DskipTests
-
 # Stage 2: Run
 FROM eclipse-temurin:17
 WORKDIR /app
-
-# Tạo thư mục config nếu chưa có
 RUN mkdir -p /app/config
-
-# Copy JAR file đã build từ stage trước
 COPY --from=build /app/target/read_book_online-0.0.1-SNAPSHOT.jar app.jar
 
-# Kiểm tra xem application.yml có tồn tại trong /etc/secrets/ không
+# Kiểm tra nội dung thư mục /etc/secrets/ để debug
+RUN ls -la /etc/secrets/ || echo "Directory /etc/secrets/ is empty"
+
+# Sao chép application.yml
 RUN if [ -f /etc/secrets/application.yml ]; then \
     echo "Copying application.yml..."; \
     cp /etc/secrets/application.yml /app/config/application.yml; \
@@ -22,7 +15,7 @@ RUN if [ -f /etc/secrets/application.yml ]; then \
     echo "No application.yml found in /etc/secrets"; \
     fi
 
-# Kiểm tra xem application.properties có tồn tại trong /etc/secrets/ không
+# Sao chép application.properties
 RUN if [ -f /etc/secrets/application.properties ]; then \
     echo "Copying application.properties..."; \
     cp /etc/secrets/application.properties /app/config/application.properties; \
@@ -30,13 +23,7 @@ RUN if [ -f /etc/secrets/application.properties ]; then \
     echo "No application.properties found in /etc/secrets"; \
     fi
 
-# Cấu hình Spring Boot ưu tiên đọc cả:
-# - application.properties trong JAR (classpath)
-# - application.yml từ file bên ngoài (override nếu cần)
-ENV SPRING_CONFIG_LOCATION=classpath:/,optional:file:/app/config/
-
-# Mở port
+# Cấu hình SPRING_CONFIG_LOCATION chỉ tìm trong /app/config/
+ENV SPRING_CONFIG_LOCATION=optional:file:/app/config/
 EXPOSE 8080
-
-# Entry point
 ENTRYPOINT ["java", "-jar", "app.jar"]

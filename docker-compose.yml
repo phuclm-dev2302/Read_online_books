@@ -6,21 +6,21 @@ services:
     image: read_book_online
     build: .
     ports:
-      - "8079:8080"  # Ánh xạ cổng của container ứng dụng tới cổng 8079 trên host
+      - "8078:8080"  # Ánh xạ cổng của container ứng dụng tới cổng 8079 trên host
     environment:
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/read_book_online  # Sử dụng tên dịch vụ 'db' trong Docker Compose
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5432/book_online_db      # Sử dụng tên dịch vụ 'db' trong Docker Compose
       - SPRING_DATASOURCE_USERNAME=postgres
       - SPRING_DATASOURCE_PASSWORD=123456
     depends_on:
       - db
   db:
-    image: postgres:13
+    image: postgres:latest
     environment:
       - POSTGRES_DB=book_online_db
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=123456
     ports:
-      - "5431:5432"
+      - "5432:5432"
 
 
   zookeeper:

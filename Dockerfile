@@ -1,5 +1,11 @@
+# Use an official OpenJDK runtime as a parent image
 FROM openjdk:17-jdk-slim
+
+# Set the working directory
 WORKDIR /app
-COPY target/read_book_online-0.0.1-SNAPSHOT.jar app.jar
-EXPOSE 8080
+
+# Copy the built jar file
+COPY target/*.jar app.jar
+
+# Run the jar file
 ENTRYPOINT ["java", "-jar", "app.jar"]

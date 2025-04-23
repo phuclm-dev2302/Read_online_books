@@ -19,6 +19,14 @@ RUN if [ -f /etc/secrets/application.yml ]; then \
     echo "No application.yml found in /etc/secrets"; \
     fi
 
+# Kiểm tra xem application.properties có tồn tại trong /etc/secrets/ không
+RUN if [ -f /etc/secrets/application.properties ]; then \
+    echo "Copying application.properties..."; \
+    cp /etc/secrets/application.properties /app/config/application.properties; \
+    else \
+    echo "No application.properties found in /etc/secrets"; \
+    fi
+
 # Cấu hình Spring Boot ưu tiên đọc cả:
 # - application.properties trong JAR (classpath)
 # - application.yml từ file bên ngoài (override nếu cần)

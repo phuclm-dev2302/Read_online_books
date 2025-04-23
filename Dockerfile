@@ -11,10 +11,13 @@ WORKDIR /app
 # Copy JAR file đã build từ stage trước
 COPY --from=build /app/target/read_book_online-0.0.1-SNAPSHOT.jar app.jar
 
-# Copy application.yml từ Render Secret File (nếu có)
-# Render sẽ mount file này tại /etc/secrets/application.yml
-# => Chúng ta đưa nó vào thư mục config riêng để Spring Boot đọc
-COPY /etc/secrets/application.yml /app/config/application.yml
+# Kiểm tra xem application.yml có tồn tại trong /etc/secrets/ không
+RUN if [ -f /etc/secrets/application.yml ]; then \
+    echo "Copying application.yml..."; \
+    cp /etc/secrets/application.yml /app/config/application.yml; \
+    else \
+    echo "No application.yml found in /etc/secrets"; \
+    fi
 
 # Cấu hình Spring Boot ưu tiên đọc cả:
 # - application.properties trong JAR (classpath)
@@ -24,4 +27,5 @@ ENV SPRING_CONFIG_LOCATION=classpath:/,file:/app/config/
 # Mở port
 EXPOSE 8080
 
+# Entry point
 ENTRYPOINT ["java", "-jar", "app.jar"]

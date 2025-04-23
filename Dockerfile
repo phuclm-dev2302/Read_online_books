@@ -1,24 +1,11 @@
-# Use an official OpenJDK runtime as a parent image
-FROM openjdk:17-jdk-slim
-
-# Set the working directory
+# Stage 1: Build
+FROM maven:3.9.1-eclipse-temurin-17 AS build
 WORKDIR /app
+COPY . .
+RUN mvn clean package -DskipTests
 
-# Install Maven to build the project
-RUN apt-get update && apt-get install -y maven --no-install-recommends && rm -rf /var/lib/apt/lists/*
-
-# Copy the project files (pom.xml and source code)
-COPY pom.xml .
-COPY src ./src
-
-# Run Maven to build the project and generate the jar file
-RUN mvn clean install -DskipTests
-
-# Ensure the jar file is present before copying
-RUN ls -lh target/
-
-# Copy the built jar file
-COPY target/read_book_online-0.0.1-SNAPSHOT.jar app.jar
-
-# Run the jar file
+# Stage 2: Run
+FROM eclipse-temurin:17
+WORKDIR /app
+COPY --from=build /app/target/read_book_online-0.0.1-SNAPSHOT.jar app.jar
 ENTRYPOINT ["java", "-jar", "app.jar"]

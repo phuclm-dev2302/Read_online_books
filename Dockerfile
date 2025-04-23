@@ -30,7 +30,8 @@ RUN if [ -f /etc/secrets/application.properties ]; then \
 # Cấu hình Spring Boot ưu tiên đọc cả:
 # - application.properties trong JAR (classpath)
 # - application.yml từ file bên ngoài (override nếu cần)
-ENV SPRING_CONFIG_LOCATION=classpath:/,file:/app/config/
+ENV SPRING_CONFIG_LOCATION=classpath:/,optional:file:/app/config/
+
 
 # Mở port
 EXPOSE 8080

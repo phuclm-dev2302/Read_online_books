@@ -1,14 +1,7 @@
 services:
-  - name: read-book-online
+  - type: web
+    name: read-book-online
     env: java
+    buildCommand: ""
+    startCommand: "java -jar target/read-book-online-0.0.1-SNAPSHOT.jar"
     plan: free
-    buildCommand: "./mvnw clean install -DskipTests"
-    startCommand: "java -jar app.jar"
-    envVars:
-      - key: SPRING_CONFIG_LOCATION
-        value: "optional:file:/app/config/"
-    secretFiles:
-      - path: /etc/secrets/application.yml
-        name: application.yml
-      - path: /etc/secrets/application.properties
-        name: application.properties

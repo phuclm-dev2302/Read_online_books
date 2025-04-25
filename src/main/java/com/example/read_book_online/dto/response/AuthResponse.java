@@ -14,15 +14,16 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class AuthResponse {
     private Long id;
-    private String token;
     private String userName;
+    private String token;
+    private String refreshToken;
 
-
-    public static AuthResponse from(User user, String token) {
+    public static AuthResponse from(User user, String token,String refreshToken) {
         return AuthResponse.builder()
                 .id(user.getUserId())
                 .userName(user.getUsername())
                 .token(token)
+                .refreshToken(refreshToken)
                 .build();
     }
 }

@@ -22,4 +22,6 @@ public interface AuthService {
     ResponseData<String> forgotPassword(String email);
 
     ResponseData<String> confirmOtpRestPassword(long userId, String otpCode);
+
+    ResponseData<AuthResponse> refreshToken(String refreshToken);
 }

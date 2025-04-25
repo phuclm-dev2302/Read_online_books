@@ -75,4 +75,9 @@ public class AuthController {
     public ResponseEntity<ResponseData<String>> logout(HttpServletRequest request, HttpServletResponse response) {
         return ResponseEntity.ok(authService.logout(request, response));
     }
+    @Operation(summary = "refresh token", description = "refresh token for user")
+    @GetMapping("/refresh")
+    public ResponseEntity refreshToken(@RequestHeader("X-Refresh-Token") String refreshToken){
+        return ResponseEntity.ok(authService.refreshToken(refreshToken));
+    }
 }

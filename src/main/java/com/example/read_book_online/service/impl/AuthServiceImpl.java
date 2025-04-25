@@ -1,5 +1,6 @@
 package com.example.read_book_online.service.impl;
 
+import com.example.read_book_online.config.exception.InvalidRefreshTokenException;
 import com.example.read_book_online.config.exception.UserNotFoundException;
 import com.example.read_book_online.dto.request.SignInRequest;
 import com.example.read_book_online.dto.request.SignUpRequest;
@@ -97,6 +98,24 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
+    public ResponseData<AuthResponse> refreshToken(String refreshToken) {
+        if (refreshToken != null) {
+            refreshToken = refreshToken.replaceFirst("Bearer ", "");
+            if (jwtProvider.validateRefreshToken(refreshToken)) {
+                Authentication auth = jwtProvider.createAuthentication(refreshToken);
+
+                User user = userRepository.findByEmail(auth.getName())
+                        .orElseThrow(() -> new UserNotFoundException("User not found with email: " + auth.getName()));
+
+                log.info("User {} refreshed token", user.getUsername());
+
+                return new ResponseData<>(200,"refresh token success",AuthResponse.from(user, jwtProvider.generateToken(auth), refreshToken));
+            }
+        }
+        throw new InvalidRefreshTokenException("INVALID REFRESH TOKEN");
+    }
+
+    @Override
     public ResponseData<String> register(SignUpRequest form) {
         if (userRepository.existsByEmail(form.getEmail())) {
             return new ResponseError<>(400, "Email address already in use");
@@ -143,9 +162,10 @@ public class AuthServiceImpl implements AuthService {
             throw new IllegalArgumentException("Invalid email or password");
         }
         String accessToken = jwtProvider.generateToken(authentication);
+        String refreshToken = jwtProvider.generateRefreshToken(authentication);
         log.info("User {} logged in successfully with ", user.getEmail());
 
-        return new ResponseData<>(200,"login success", AuthResponse.from(user,accessToken));
+        return new ResponseData<>(200,"login success", AuthResponse.from(user,accessToken, refreshToken));
     }
 
     @Override

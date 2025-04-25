@@ -88,6 +88,12 @@ public class GlobalExceptionHandler {
         log.error("New password not match: {}", ex.getMessage());
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
     }
+    @ExceptionHandler(InvalidRefreshTokenException.class)
+    public ResponseEntity<ResponseError<Object>> handleInvalidRefreshToken (InvalidRefreshTokenException ex) {
+        ResponseError<Object> errorResponse = new ResponseError<>(401, ex.getMessage());
+        log.error("Invalid refresh token: {}", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(errorResponse);
+    }
 }
 
 

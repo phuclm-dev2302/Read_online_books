@@ -1,35 +1,30 @@
-# Stage 1: Build
+# ------------ STAGE 1: BUILD ------------
 FROM maven:3.9.1-eclipse-temurin-17 AS build
 WORKDIR /app
 COPY . .
 RUN mvn clean package -DskipTests
 
-# Stage 2: Run
+# ------------ STAGE 2: RUNTIME ------------
 FROM eclipse-temurin:17
 WORKDIR /app
+
+# Tạo thư mục chứa config
 RUN mkdir -p /app/config
+
+# Copy file JAR từ build
 COPY --from=build /app/target/read_book_online-0.0.1-SNAPSHOT.jar app.jar
 
-# Kiểm tra nội dung thư mục /etc/secrets/ để debug
-RUN ls -la /etc/secrets/ || echo "Directory /etc/secrets/ is empty"
-
-# Sao chép application.yml
-RUN if [ -f /etc/secrets/application.yml ]; then \
-    echo "Copying application.yml..."; \
-    cp /etc/secrets/application.yml /app/config/application.yml; \
-    else \
-    echo "No application.yml found in /etc/secrets"; \
-    fi
-
-# Sao chép application.properties
-RUN if [ -f /etc/secrets/application.properties ]; then \
-    echo "Copying application.properties..."; \
-    cp /etc/secrets/application.properties /app/config/application.properties; \
-    else \
-    echo "No application.properties found in /etc/secrets"; \
-    fi
-
-# Cấu hình SPRING_CONFIG_LOCATION chỉ tìm trong /app/config/
+# Cấu hình biến môi trường cho Spring Boot
 ENV SPRING_CONFIG_LOCATION=optional:file:/app/config/
+
 EXPOSE 8080
-ENTRYPOINT ["java", "-jar", "app.jar"]
+
+# Dùng ENTRYPOINT để copy secrets khi container chạy
+ENTRYPOINT sh -c ' \
+  if [ -f /etc/secrets/application.yml ]; then \
+    echo "[INFO] Found secret application.yml, copying..."; \
+    cp /etc/secrets/application.yml /app/config/application.yml; \
+  else \
+    echo "[WARN] No application.yml found in /etc/secrets"; \
+  fi && \
+  java -jar app.jar'

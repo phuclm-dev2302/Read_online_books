@@ -1,14 +1,12 @@
 services:
   - name: read-book-online
-    env: java
+    type: web
+    env: docker
     plan: free
-    buildCommand: "./mvnw clean install -DskipTests"
-    startCommand: "java -jar app.jar"
+    dockerfilePath: ./Dockerfile
     envVars:
       - key: SPRING_CONFIG_LOCATION
         value: "optional:file:/app/config/"
     secretFiles:
-      - path: /etc/secrets/application.yml
-        name: application.yml
-      - path: /etc/secrets/application.properties
-        name: application.properties
+      - name: application.yml
+        path: /etc/secrets/application.yml

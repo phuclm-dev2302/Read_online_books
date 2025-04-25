@@ -180,6 +180,11 @@ public class BookServiceImpl implements BookService {
             return new ResponseData<>(200, "Success", BookResponse.from(book, bookRepository));
         } else {
             // Xử lý khi không tìm thấy BookInteraction
+            BookInteraction bookInteraction = BookInteraction.builder()
+                    .liked(true)
+                    .book(book)
+                    .user(user)
+                    .build();
             return new ResponseData<>(404, "Book interaction not found", null);
         }
     }

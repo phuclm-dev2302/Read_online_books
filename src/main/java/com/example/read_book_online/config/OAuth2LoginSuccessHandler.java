@@ -80,9 +80,9 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
 
             // Tạo JWT token
             String token = jwtProvider.generateToken(userAuth);
-
+            String refreshToken = jwtProvider.generateRefreshToken(userAuth);
             // Tạo response trả về client
-            AuthResponse authResponse = AuthResponse.from(user, token);
+            AuthResponse authResponse = AuthResponse.from(user, token, refreshToken);
             ResponseData<AuthResponse> responseData = new ResponseData<>(200, "Đăng nhập thành công!", authResponse);
 
             // Gửi response dưới dạng JSON

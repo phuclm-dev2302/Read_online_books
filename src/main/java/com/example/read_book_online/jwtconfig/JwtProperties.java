@@ -15,4 +15,6 @@ public class JwtProperties {
     private String prefix;
     private String authHeader;
     private long keyExpiresAt;
+    private String refreshKey;
+    private long refreshExpiresAt;
 }

@@ -61,6 +61,28 @@ public class JwtProvider {
         }
     }
 
+    public String generateRefreshToken(Authentication auth) {
+        return JWT.create()
+                .withExpiresAt(Instant.now().plusMillis(jwtProperties.getRefreshExpiresAt()))
+                .withIssuedAt(Instant.now())
+                .withSubject(auth.getName())
+                .sign(Algorithm.HMAC512(jwtProperties.getRefreshKey()));
+    }
+
+    public boolean validateRefreshToken(String token) {
+        try {
+            JWT.require(Algorithm.HMAC512(jwtProperties.getRefreshKey()))
+                    .acceptExpiresAt(jwtProperties.getRefreshExpiresAt())
+                    .withClaimPresence("sub")
+                    .withClaimPresence("iat")
+                    .build()
+                    .verify(token);
+            return true;
+        }catch (Exception e) {
+            return false;
+        }
+    }
+
     public String getJwtFromRequest(HttpServletRequest request) {
         String bearerToken = request.getHeader("Authorization");
         if (bearerToken != null && bearerToken.startsWith("Bearer ")) {

@@ -1,0 +1,54 @@
+spring:
+  application:
+    name: read_book_online
+
+  datasource:
+    url: jdbc:postgresql://dpg-d04dc4juibrs73b021ag-a.oregon-postgres.render.com:5432/book_online_db_962g
+    username: book_online_db_962g_user
+    password: SS61SamltNq5bClGM50yrlbhftcKAiUj
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+
+  main:
+    allow-bean-definition-overriding: true
+
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 10MB
+      max-request-size: 10MB
+
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: 287363422916-cr656rmk1g50c69nu3eue6l8ml50js3r.apps.googleusercontent.com
+            client-secret: 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
+            scope:
+              - profile
+              - email
+      provider:
+        google:
+          authorization-uri: https://accounts.google.com/o/oauth2/auth
+          token-uri: https://oauth2.googleapis.com/token
+          user-info-uri: https://www.googleapis.com/oauth2/v3/userinfo
+
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: 2251120362@ut.edu.vn
+    password: lam_1782004
+    properties:
+      mail.smtp.auth: true
+      mail.smtp.starttls.enable: true
+    from: 2251120362@ut.edu.vn
+
+  kafka:
+    bootstrap-servers: localhost:9092

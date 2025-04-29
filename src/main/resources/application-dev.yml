@@ -6,6 +6,7 @@ spring:
     url: jdbc:postgresql://dpg-d04dc4juibrs73b021ag-a.oregon-postgres.render.com:5432/book_online_db_962g
     username: ${DB_USERNAME}
     password: ${DB_PASSWORD}
+    driver-class-name: org.postgresql.Driver
 
   jpa:
     hibernate:

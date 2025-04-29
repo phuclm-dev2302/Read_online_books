@@ -1,0 +1,86 @@
+spring:
+  application:
+    name: read_book_online
+    
+app:
+  security:
+    jwt:
+      privateKey: 123abcxyzconchotoanmditmemaytin
+      prefix: Bearer
+      authHeader: Authorization
+      keyExpiresAt: 3600000
+      
+  datasource:
+    url: jdbc:postgresql://dpg-d04dc4juibrs73b021ag-a.oregon-postgres.render.com:5432/book_online_db_962g
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+
+  main:
+    allow-bean-definition-overriding: true
+
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 10MB
+      max-request-size: 10MB
+
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: ${GOOGLE_CLIENT_ID}
+            client-secret: ${GOOGLE_CLIENT_SECRET}
+            scope:
+              - profile
+              - email
+      provider:
+        google:
+          authorization-uri: https://accounts.google.com/o/oauth2/auth
+          token-uri: https://oauth2.googleapis.com/token
+          user-info-uri: https://www.googleapis.com/oauth2/v3/userinfo
+
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: ${EMAIL_USERNAME}
+    password: ${EMAIL_PASSWORD}
+    properties:
+      mail.smtp.auth: true
+      mail.smtp.starttls.enable: true
+    from: ${EMAIL_USERNAME}
+
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+endpoint:
+  confirmUser: http://localhost:8080/api/v1/auth/confirm
+
+momo:
+  partnerCode: MOMO4MUD20240115_TEST
+  accessKey: Ekj9og2VnRfOuIys
+  secretKey: PseUbm2s8QVJEbexsh8H3Jz2qa9tDqoa
+  endpoint: https://test-payment.momo.vn/v2/gateway/api/create
+  ipnUrl:  https://d5ec-112-197-59-27.ngrok-free.app/api/v1/ipn
+  redirectUrl:  https://d5ec-112-197-59-27.ngrok-free.app/api/v1/redirect
+
+ghn:
+  apiUrl:
+    getProvinces: https://online-gateway.ghn.vn/shiip/public-api/master-data/province
+    getDistrict: https://online-gateway.ghn.vn/shiip/public-api/master-data/district
+    getWard: https://online-gateway.ghn.vn/shiip/public-api/master-data/ward
+
+openapi:
+  service:
+    api-docs: api-service
+    server: http://localhost:8080
+    title: API Service
+    version: 1.0.0

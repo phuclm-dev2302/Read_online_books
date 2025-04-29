@@ -1,20 +1,15 @@
 spring:
   application:
     name: read_book_online
-    
-app:
-  security:
-    jwt:
-      privateKey: 123abcxyzconchotoanmditmemaytin
-      prefix: Bearer
-      authHeader: Authorization
-      keyExpiresAt: 3600000
-      
+
   datasource:
     url: jdbc:postgresql://dpg-d04dc4juibrs73b021ag-a.oregon-postgres.render.com:5432/book_online_db_962g
     username: ${DB_USERNAME}
     password: ${DB_PASSWORD}
     driver-class-name: org.postgresql.Driver
+    hikari:
+      connection-timeout: 30000
+      maximum-pool-size: 10
 
   jpa:
     hibernate:
@@ -23,6 +18,8 @@ app:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
+        connection:
+          timeout: 30000
 
   main:
     allow-bean-definition-overriding: true
@@ -59,20 +56,29 @@ app:
       mail.smtp.starttls.enable: true
     from: ${EMAIL_USERNAME}
 
-  kafka:
-    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+app:
+  security:
+    jwt:
+      privateKey: ${JWT_PRIVATE_KEY}
+      prefix: Bearer
+      authHeader: Authorization
+      keyExpiresAt: 3600000
+      refreshKey: ${JWT_REFRESH_KEY}
+      refreshExpiresAt: 604800000
+
 endpoint:
-  confirmUser: http://localhost:8080/api/v1/auth/confirm
+  confirmUser: ${APP_URL}/api/v1/auth/confirm
 
 momo:
-  partnerCode: MOMO4MUD20240115_TEST
-  accessKey: Ekj9og2VnRfOuIys
-  secretKey: PseUbm2s8QVJEbexsh8H3Jz2qa9tDqoa
+  partnerCode: ${MOMO_PARTNER_CODE}
+  accessKey: ${MOMO_ACCESS_KEY}
+  secretKey: ${MOMO_SECRET_KEY}
   endpoint: https://test-payment.momo.vn/v2/gateway/api/create
-  ipnUrl:  https://d5ec-112-197-59-27.ngrok-free.app/api/v1/ipn
-  redirectUrl:  https://d5ec-112-197-59-27.ngrok-free.app/api/v1/redirect
+  ipnUrl: ${APP_URL}/api/v1/ipn
+  redirectUrl: ${APP_URL}/api/v1/redirect
 
 ghn:
+  token: ${GHN_TOKEN}
   apiUrl:
     getProvinces: https://online-gateway.ghn.vn/shiip/public-api/master-data/province
     getDistrict: https://online-gateway.ghn.vn/shiip/public-api/master-data/district
@@ -81,6 +87,12 @@ ghn:
 openapi:
   service:
     api-docs: api-service
-    server: http://localhost:8080
+    server: ${APP_URL}
     title: API Service
     version: 1.0.0
+
+logging:
+  level:
+    org.springframework: DEBUG
+    org.hibernate: DEBUG
+    com.example: DEBUG

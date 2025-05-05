@@ -41,12 +41,11 @@ public class WebClientConfig {
         // Configure HTTP client with extended timeouts
         HttpClient httpClient = HttpClient.create(provider)
                 .secure(t -> t.sslContext(sslContext))
-                .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 15000) // ⬅️  timeout kết nối
-                .responseTimeout(Duration.ofSeconds(30))              // ⬅️ Timeout toàn bộ request
+                .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 30000) // 30s
+                .responseTimeout(Duration.ofSeconds(60)) // 60s
                 .doOnConnected(conn ->
-                        conn.addHandlerLast(new ReadTimeoutHandler(15, TimeUnit.SECONDS))   // ⬅️ Đọc timeout 15s
-                                .addHandlerLast(new WriteTimeoutHandler(15, TimeUnit.SECONDS))) // ⬅️ Ghi timeout 15s
-                .protocol(reactor.netty.http.HttpProtocol.H2, reactor.netty.http.HttpProtocol.HTTP11);
+                        conn.addHandlerLast(new ReadTimeoutHandler(30, TimeUnit.SECONDS))
+                                .addHandlerLast(new WriteTimeoutHandler(30, TimeUnit.SECONDS)));
 
         // Configure memory limit
         ExchangeStrategies exchangeStrategies = ExchangeStrategies.builder()

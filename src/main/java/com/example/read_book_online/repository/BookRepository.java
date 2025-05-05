@@ -29,16 +29,24 @@ public interface BookRepository extends JpaRepository<Book, Long> {
             "ORDER BY SUM(i.views + CASE WHEN i.liked = true THEN 1 ELSE 0 END) DESC")
     List<Book> findTopBooks();
 
-    @Query("SELECT b FROM Book b " +
-            "JOIN b.categories c " +
-            "WHERE c IN (SELECT c FROM User u " +
-            "JOIN u.favoriteBooks fb " +
-            "JOIN fb.categories c " +
-            "WHERE u.userId = :userId) " +
-            "AND b NOT IN (SELECT fb FROM User u JOIN u.favoriteBooks fb WHERE u.userId = :userId) " +
-            "GROUP BY b " +
-            "ORDER BY COUNT((SELECT bi FROM BookInteraction bi WHERE bi.book = b AND bi.liked = true)) DESC, " +
-            "SUM((SELECT bi.views FROM BookInteraction bi WHERE bi.book = b)) DESC")
+    @Query("""
+            SELECT b FROM Book b
+            JOIN b.categories c
+            LEFT JOIN b.interactions bi
+            WHERE c IN (
+                SELECT c2 FROM User u
+                JOIN u.favoriteBooks fb
+                JOIN fb.categories c2
+                WHERE u.userId = :userId
+            )
+            AND b NOT IN (
+                SELECT fb FROM User u JOIN u.favoriteBooks fb WHERE u.userId = :userId
+            )
+            GROUP BY b
+            ORDER BY 
+              SUM(CASE WHEN bi.liked = true THEN 1 ELSE 0 END) DESC,
+              SUM(bi.views) DESC
+            """)
     List<Book> findSuggestedBooks(@Param("userId") Long userId, Pageable pageable);
 
     @Query("SELECT DISTINCT b FROM Book b JOIN b.categories c WHERE c.categoryName IN :categoryNames")

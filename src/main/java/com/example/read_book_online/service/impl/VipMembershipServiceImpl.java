@@ -46,7 +46,7 @@ public class VipMembershipServiceImpl implements VipMembershipService {
             paymentResult = momoPaymentService.createPaymentRequest(amount);
             log.info("MoMo payment request created with amount: {}", amount);
 
-            existingVip.setVipStatusEnum(VipStatusEnum.ACTIVE);
+            existingVip.setVipStatusEnum(VipStatusEnum.EXPIRED);
             vipMembershipRepository.save(existingVip);
 
         } else {

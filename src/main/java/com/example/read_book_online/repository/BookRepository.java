@@ -49,9 +49,10 @@ public interface BookRepository extends JpaRepository<Book, Long> {
 
     List<Book> findByTitleContainingIgnoreCase(String title);
 
-    @Query("SELECT b FROM Book b JOIN b.interactions i GROUP BY b ORDER BY COUNT(i.liked) DESC")
+    @Query("SELECT b FROM Book b LEFT JOIN b.interactions i GROUP BY b ORDER BY SUM(CASE WHEN i.liked = true THEN 1 ELSE 0 END) DESC")
     List<Book> findBooksByMostLikes(Pageable pageable);
 
-    @Query("SELECT b FROM Book b JOIN b.interactions i GROUP BY b ORDER BY SUM(i.views) DESC")
+    @Query("SELECT b FROM Book b LEFT JOIN b.interactions i GROUP BY b ORDER BY SUM(i.views) DESC")
     List<Book> findBooksByMostViews(Pageable pageable);
+
 }

@@ -32,6 +32,7 @@ import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
+import java.util.Random;
 
 @Slf4j
 @Service
@@ -305,13 +306,31 @@ public class BookServiceImpl implements BookService {
         User user = userService.getUserBySecurity();
 
         Pageable pageable = PageRequest.of(0, 10);
-        List<Book> suggestedBooks = bookRepository.findSuggestedBooks(user.getUserId(),pageable);
+        List<Book> suggestedBooks = bookRepository.findSuggestedBooks(user.getUserId(), pageable);
+
+        int requiredSize = 8;
+
+        if (suggestedBooks.size() < requiredSize) {
+            int remaining = requiredSize - suggestedBooks.size();
+
+            List<Book> allBooks = bookRepository.findAll();
+
+            Random random = new Random();
+            for (int i = 0; i < remaining; i++) {
+                Book randomBook = allBooks.get(random.nextInt(allBooks.size()));
+                suggestedBooks.add(randomBook);
+            }
+        }
+
+        suggestedBooks = suggestedBooks.subList(0, Math.min(requiredSize, suggestedBooks.size()));
 
         List<BookResponse> bookResponses = suggestedBooks.stream()
                 .map(book -> BookResponse.from(book, bookRepository))
                 .toList();
+
         return new ResponseData<>(200, "Suggested books fetched successfully", bookResponses);
     }
+
     @Override
     public ResponseData<List<BookResponse>> searchBookByCategoryNames(List<String> categoryNames) {
         List<Category> existingCategories = categoryRepository.findByCategoryNameIn(categoryNames);
